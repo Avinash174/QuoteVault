@@ -7,14 +7,20 @@ part of 'quote_model.dart';
 // **************************************************************************
 
 _$QuoteImpl _$$QuoteImplFromJson(Map<String, dynamic> json) => _$QuoteImpl(
-  id: (json['id'] as num).toInt(),
-  text: json['text'] as String,
+  text: json['quote'] as String,
   author: json['author'] as String,
+  work: json['work'] as String? ?? '',
+  categories:
+      (json['categories'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$QuoteImplToJson(_$QuoteImpl instance) =>
     <String, dynamic>{
-      'id': instance.id,
-      'text': instance.text,
+      'quote': instance.text,
       'author': instance.author,
+      'work': instance.work,
+      'categories': instance.categories,
     };

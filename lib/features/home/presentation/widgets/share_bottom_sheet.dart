@@ -126,7 +126,7 @@ class ShareBottomSheet extends StatelessWidget {
           // Actions
           _buildActionTile(
             context,
-            icon: Icons.share_outluined,
+            icon: Icons.share_outlined,
             title: 'Share as Text',
             subtitle: 'Send via Messages or Mail',
             onTap: () => _shareAsText(context),

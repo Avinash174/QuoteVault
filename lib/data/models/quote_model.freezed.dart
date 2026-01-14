@@ -21,9 +21,11 @@ Quote _$QuoteFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Quote {
-  int get id => throw _privateConstructorUsedError;
+  @JsonKey(name: 'quote')
   String get text => throw _privateConstructorUsedError;
   String get author => throw _privateConstructorUsedError;
+  String get work => throw _privateConstructorUsedError;
+  List<String> get categories => throw _privateConstructorUsedError;
 
   /// Serializes this Quote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,7 +41,12 @@ abstract class $QuoteCopyWith<$Res> {
   factory $QuoteCopyWith(Quote value, $Res Function(Quote) then) =
       _$QuoteCopyWithImpl<$Res, Quote>;
   @useResult
-  $Res call({int id, String text, String author});
+  $Res call({
+    @JsonKey(name: 'quote') String text,
+    String author,
+    String work,
+    List<String> categories,
+  });
 }
 
 /// @nodoc
@@ -56,13 +63,14 @@ class _$QuoteCopyWithImpl<$Res, $Val extends Quote>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? text = null, Object? author = null}) {
+  $Res call({
+    Object? text = null,
+    Object? author = null,
+    Object? work = null,
+    Object? categories = null,
+  }) {
     return _then(
       _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
             text: null == text
                 ? _value.text
                 : text // ignore: cast_nullable_to_non_nullable
@@ -71,6 +79,14 @@ class _$QuoteCopyWithImpl<$Res, $Val extends Quote>
                 ? _value.author
                 : author // ignore: cast_nullable_to_non_nullable
                       as String,
+            work: null == work
+                ? _value.work
+                : work // ignore: cast_nullable_to_non_nullable
+                      as String,
+            categories: null == categories
+                ? _value.categories
+                : categories // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -85,7 +101,12 @@ abstract class _$$QuoteImplCopyWith<$Res> implements $QuoteCopyWith<$Res> {
   ) = __$$QuoteImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String text, String author});
+  $Res call({
+    @JsonKey(name: 'quote') String text,
+    String author,
+    String work,
+    List<String> categories,
+  });
 }
 
 /// @nodoc
@@ -101,13 +122,14 @@ class __$$QuoteImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? text = null, Object? author = null}) {
+  $Res call({
+    Object? text = null,
+    Object? author = null,
+    Object? work = null,
+    Object? categories = null,
+  }) {
     return _then(
       _$QuoteImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
         text: null == text
             ? _value.text
             : text // ignore: cast_nullable_to_non_nullable
@@ -116,6 +138,14 @@ class __$$QuoteImplCopyWithImpl<$Res>
             ? _value.author
             : author // ignore: cast_nullable_to_non_nullable
                   as String,
+        work: null == work
+            ? _value.work
+            : work // ignore: cast_nullable_to_non_nullable
+                  as String,
+        categories: null == categories
+            ? _value._categories
+            : categories // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -125,24 +155,35 @@ class __$$QuoteImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$QuoteImpl implements _Quote {
   const _$QuoteImpl({
-    required this.id,
-    required this.text,
+    @JsonKey(name: 'quote') required this.text,
     required this.author,
-  });
+    this.work = '',
+    final List<String> categories = const [],
+  }) : _categories = categories;
 
   factory _$QuoteImpl.fromJson(Map<String, dynamic> json) =>
       _$$QuoteImplFromJson(json);
 
   @override
-  final int id;
-  @override
+  @JsonKey(name: 'quote')
   final String text;
   @override
   final String author;
+  @override
+  @JsonKey()
+  final String work;
+  final List<String> _categories;
+  @override
+  @JsonKey()
+  List<String> get categories {
+    if (_categories is EqualUnmodifiableListView) return _categories;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_categories);
+  }
 
   @override
   String toString() {
-    return 'Quote(id: $id, text: $text, author: $author)';
+    return 'Quote(text: $text, author: $author, work: $work, categories: $categories)';
   }
 
   @override
@@ -150,14 +191,24 @@ class _$QuoteImpl implements _Quote {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$QuoteImpl &&
-            (identical(other.id, id) || other.id == id) &&
             (identical(other.text, text) || other.text == text) &&
-            (identical(other.author, author) || other.author == author));
+            (identical(other.author, author) || other.author == author) &&
+            (identical(other.work, work) || other.work == work) &&
+            const DeepCollectionEquality().equals(
+              other._categories,
+              _categories,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, text, author);
+  int get hashCode => Object.hash(
+    runtimeType,
+    text,
+    author,
+    work,
+    const DeepCollectionEquality().hash(_categories),
+  );
 
   /// Create a copy of Quote
   /// with the given fields replaced by the non-null parameter values.
@@ -175,19 +226,23 @@ class _$QuoteImpl implements _Quote {
 
 abstract class _Quote implements Quote {
   const factory _Quote({
-    required final int id,
-    required final String text,
+    @JsonKey(name: 'quote') required final String text,
     required final String author,
+    final String work,
+    final List<String> categories,
   }) = _$QuoteImpl;
 
   factory _Quote.fromJson(Map<String, dynamic> json) = _$QuoteImpl.fromJson;
 
   @override
-  int get id;
-  @override
+  @JsonKey(name: 'quote')
   String get text;
   @override
   String get author;
+  @override
+  String get work;
+  @override
+  List<String> get categories;
 
   /// Create a copy of Quote
   /// with the given fields replaced by the non-null parameter values.
