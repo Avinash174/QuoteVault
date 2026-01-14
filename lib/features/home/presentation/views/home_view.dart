@@ -75,12 +75,21 @@ class HomeView extends ConsumerWidget {
           // List
           Expanded(
             child: quotesAsync.when(
-              data: (quotes) => ListView.builder(
-                padding: const EdgeInsets.only(top: 8, bottom: 80),
-                itemCount: quotes.length,
-                itemBuilder: (context, index) {
-                  return QuoteCard(quote: quotes[index]);
+              data: (quotes) => NotificationListener<ScrollNotification>(
+                onNotification: (scrollInfo) {
+                  if (scrollInfo.metrics.pixels >=
+                      scrollInfo.metrics.maxScrollExtent) {
+                    ref.read(quoteViewModelProvider.notifier).fetchMore();
+                  }
+                  return false;
                 },
+                child: ListView.builder(
+                  padding: const EdgeInsets.only(top: 8, bottom: 80),
+                  itemCount: quotes.length,
+                  itemBuilder: (context, index) {
+                    return QuoteCard(quote: quotes[index]);
+                  },
+                ),
               ),
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, stack) => Center(child: Text('Error: $error')),

@@ -10,9 +10,15 @@ QuoteRepository quoteRepository(QuoteRepositoryRef ref) {
 }
 
 class QuoteRepository {
-  Future<List<Quote>> fetchQuotes() async {
+  Future<List<Quote>> fetchQuotes({int page = 1, int limit = 10}) async {
     try {
-      final response = await Supabase.instance.client.from('quotes').select();
+      final from = (page - 1) * limit;
+      final to = from + limit - 1;
+
+      final response = await Supabase.instance.client
+          .from('quotes')
+          .select()
+          .range(from, to);
 
       final data = response as List<dynamic>;
       return data
