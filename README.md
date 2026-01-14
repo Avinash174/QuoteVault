@@ -1,3 +1,3 @@
-# quotevault
+# Quotevault App
 
 A new Flutter project.
