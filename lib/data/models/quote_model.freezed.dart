@@ -24,9 +24,8 @@ mixin _$Quote {
   @JsonKey(name: 'quote')
   String get text => throw _privateConstructorUsedError;
   String get author => throw _privateConstructorUsedError;
-  String get work =>
-      throw _privateConstructorUsedError; // API Ninjas doesn't strictly have 'work' but we can keep it
-  String get category => throw _privateConstructorUsedError;
+  String get work => throw _privateConstructorUsedError;
+  List<String> get categories => throw _privateConstructorUsedError;
 
   /// Serializes this Quote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -46,7 +45,7 @@ abstract class $QuoteCopyWith<$Res> {
     @JsonKey(name: 'quote') String text,
     String author,
     String work,
-    String category,
+    List<String> categories,
   });
 }
 
@@ -68,7 +67,7 @@ class _$QuoteCopyWithImpl<$Res, $Val extends Quote>
     Object? text = null,
     Object? author = null,
     Object? work = null,
-    Object? category = null,
+    Object? categories = null,
   }) {
     return _then(
       _value.copyWith(
@@ -84,10 +83,10 @@ class _$QuoteCopyWithImpl<$Res, $Val extends Quote>
                 ? _value.work
                 : work // ignore: cast_nullable_to_non_nullable
                       as String,
-            category: null == category
-                ? _value.category
-                : category // ignore: cast_nullable_to_non_nullable
-                      as String,
+            categories: null == categories
+                ? _value.categories
+                : categories // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -106,7 +105,7 @@ abstract class _$$QuoteImplCopyWith<$Res> implements $QuoteCopyWith<$Res> {
     @JsonKey(name: 'quote') String text,
     String author,
     String work,
-    String category,
+    List<String> categories,
   });
 }
 
@@ -127,7 +126,7 @@ class __$$QuoteImplCopyWithImpl<$Res>
     Object? text = null,
     Object? author = null,
     Object? work = null,
-    Object? category = null,
+    Object? categories = null,
   }) {
     return _then(
       _$QuoteImpl(
@@ -143,10 +142,10 @@ class __$$QuoteImplCopyWithImpl<$Res>
             ? _value.work
             : work // ignore: cast_nullable_to_non_nullable
                   as String,
-        category: null == category
-            ? _value.category
-            : category // ignore: cast_nullable_to_non_nullable
-                  as String,
+        categories: null == categories
+            ? _value._categories
+            : categories // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -159,8 +158,8 @@ class _$QuoteImpl implements _Quote {
     @JsonKey(name: 'quote') required this.text,
     required this.author,
     this.work = '',
-    this.category = '',
-  });
+    final List<String> categories = const [],
+  }) : _categories = categories;
 
   factory _$QuoteImpl.fromJson(Map<String, dynamic> json) =>
       _$$QuoteImplFromJson(json);
@@ -173,14 +172,18 @@ class _$QuoteImpl implements _Quote {
   @override
   @JsonKey()
   final String work;
-  // API Ninjas doesn't strictly have 'work' but we can keep it
+  final List<String> _categories;
   @override
   @JsonKey()
-  final String category;
+  List<String> get categories {
+    if (_categories is EqualUnmodifiableListView) return _categories;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_categories);
+  }
 
   @override
   String toString() {
-    return 'Quote(text: $text, author: $author, work: $work, category: $category)';
+    return 'Quote(text: $text, author: $author, work: $work, categories: $categories)';
   }
 
   @override
@@ -191,13 +194,21 @@ class _$QuoteImpl implements _Quote {
             (identical(other.text, text) || other.text == text) &&
             (identical(other.author, author) || other.author == author) &&
             (identical(other.work, work) || other.work == work) &&
-            (identical(other.category, category) ||
-                other.category == category));
+            const DeepCollectionEquality().equals(
+              other._categories,
+              _categories,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, text, author, work, category);
+  int get hashCode => Object.hash(
+    runtimeType,
+    text,
+    author,
+    work,
+    const DeepCollectionEquality().hash(_categories),
+  );
 
   /// Create a copy of Quote
   /// with the given fields replaced by the non-null parameter values.
@@ -218,7 +229,7 @@ abstract class _Quote implements Quote {
     @JsonKey(name: 'quote') required final String text,
     required final String author,
     final String work,
-    final String category,
+    final List<String> categories,
   }) = _$QuoteImpl;
 
   factory _Quote.fromJson(Map<String, dynamic> json) = _$QuoteImpl.fromJson;
@@ -229,9 +240,9 @@ abstract class _Quote implements Quote {
   @override
   String get author;
   @override
-  String get work; // API Ninjas doesn't strictly have 'work' but we can keep it
+  String get work;
   @override
-  String get category;
+  List<String> get categories;
 
   /// Create a copy of Quote
   /// with the given fields replaced by the non-null parameter values.

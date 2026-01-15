@@ -14,7 +14,7 @@ class ApiService {
 
     final queryParameters = {
       'limit': limit.toString(),
-      if (category != null && category.isNotEmpty) 'category': category,
+      if (category != null && category.isNotEmpty) 'categories': category,
     };
 
     final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParameters);

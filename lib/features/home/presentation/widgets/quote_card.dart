@@ -26,9 +26,7 @@ class QuoteCard extends ConsumerWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         image: const DecorationImage(
-          image: NetworkImage(
-            'https://source.unsplash.com/random/800x600/?nature,dark',
-          ), // Placeholder
+          image: NetworkImage('https://picsum.photos/800/600?grayscale'),
           fit: BoxFit.cover,
           colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
         ),
@@ -58,20 +56,25 @@ class QuoteCard extends ConsumerWidget {
                     fontStyle: FontStyle.italic,
                     height: 1.3,
                   ),
+                  maxLines: 4, // Safety cap
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 20),
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    Text(
-                      "— ${quote.author}",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                    Expanded(
+                      child: Text(
+                        "— ${quote.author}",
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.1),
