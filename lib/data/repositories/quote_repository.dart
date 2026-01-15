@@ -1,32 +1,26 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/quote_model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../models/quote_model.dart';
+import '../services/api_service.dart';
 
 part 'quote_repository.g.dart';
 
 @riverpod
 QuoteRepository quoteRepository(QuoteRepositoryRef ref) {
-  return QuoteRepository();
+  return QuoteRepository(ApiService());
 }
 
 class QuoteRepository {
+  final ApiService _apiService;
+
+  QuoteRepository(this._apiService);
+
   Future<List<Quote>> fetchQuotes({int page = 1, int limit = 10}) async {
     try {
-      final from = (page - 1) * limit;
-      final to = from + limit - 1;
-
-      final response = await Supabase.instance.client
-          .from('quotes')
-          .select()
-          .range(from, to);
-
-      final data = response as List<dynamic>;
-      return data
-          .map((json) => Quote.fromJson(json as Map<String, dynamic>))
-          .toList();
+      // API Ninjas doesn't support pagination by page number directly in the same way,
+      // but we can request a limit. 'page' might be ignored or handled by client side if needed.
+      // For now, we just fetch 'limit' quotes.
+      return await _apiService.getQuotes(limit: limit);
     } catch (e) {
-      // Return empty list or throw, depending on error handling strategy.
-      // For now, let's rethrow to let the UI show the error state.
       throw Exception('Failed to fetch quotes: $e');
     }
   }

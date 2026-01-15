@@ -6,7 +6,7 @@ part of 'quote_viewmodel.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$quoteViewModelHash() => r'846bf67e0a35fb136b9106eb3f2bd0aa37aa15d5';
+String _$quoteViewModelHash() => r'3e3ba7ef83eeb7d58d0d8a64105d1d1425f8e4f7';
 
 /// See also [QuoteViewModel].
 @ProviderFor(QuoteViewModel)

@@ -20,6 +20,10 @@ class AppColors {
   static const Color sunsetStart = Color(0xFFFF512F);
   static const Color sunsetEnd = Color(0xFFDD2476);
 
+  // Diamond FAB Gradient
+  static const Color fabGradientStart = Color(0xFF4FACFE); // Light Blue
+  static const Color fabGradientEnd = Color(0xFF00F2FE); // Cyan/Teal
+
   // Text Colors
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Color(0xFFB0B0B0);

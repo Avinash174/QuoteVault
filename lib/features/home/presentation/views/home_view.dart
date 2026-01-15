@@ -60,7 +60,7 @@ class HomeView extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'SUPABASE SYNCED',
+                  'API SYNCED', // Updated from 'SUPABASE SYNCED'
                   style: TextStyle(
                     color: Colors.grey[600],
                     fontSize: 10,
@@ -97,12 +97,7 @@ class HomeView extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        child: const Icon(Icons.add),
-      ),
+      // Removed redundant FloatingActionButton as MainScreen handles it
     );
   }
 
