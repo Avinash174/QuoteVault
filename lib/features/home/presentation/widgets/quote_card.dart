@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/quote_model.dart';
 import 'share_bottom_sheet.dart';
@@ -24,15 +25,11 @@ class QuoteCard extends ConsumerWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       height: 300,
       decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(20),
-        image: const DecorationImage(
-          image: NetworkImage('https://picsum.photos/800/600?grayscale'),
-          fit: BoxFit.cover,
-          colorFilter: ColorFilter.mode(Colors.black45, BlendMode.darken),
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -40,6 +37,23 @@ class QuoteCard extends ConsumerWidget {
       ),
       child: Stack(
         children: [
+          // Background Image (Optional/Placeholder)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: CachedNetworkImage(
+              imageUrl: 'https://picsum.photos/800/600?grayscale',
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
+              color: Colors.black.withOpacity(0.4),
+              colorBlendMode: BlendMode.darken,
+              placeholder: (context, url) =>
+                  Container(color: Theme.of(context).cardTheme.color),
+              errorWidget: (context, url, error) =>
+                  Container(color: Theme.of(context).cardTheme.color),
+            ),
+          ),
+
           // Content
           Padding(
             padding: const EdgeInsets.all(24.0),
@@ -49,28 +63,27 @@ class QuoteCard extends ConsumerWidget {
                 const Spacer(),
                 Text(
                   '"${quote.text}"',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     fontStyle: FontStyle.italic,
                     height: 1.3,
+                    color: Colors
+                        .white, // Always white because of dark image overlay
                   ),
-                  maxLines: 4, // Safety cap
+                  maxLines: 4,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 20),
                 const SizedBox(height: 20),
                 Row(
                   children: [
                     Expanded(
                       child: Text(
                         "— ${quote.author}",
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -97,7 +110,7 @@ class QuoteCard extends ConsumerWidget {
                       icon: const Icon(Icons.favorite, size: 18),
                       label: const Text('Favorite'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7F5AF0),
+                        backgroundColor: AppColors.accent,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../views/home_view.dart';
+import '../../../../features/search/presentation/views/search_view.dart';
+
+import '../../../../features/profile/presentation/views/profile_view.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -15,21 +18,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeView(), // Explore
-    const Center(
-      child: Text('Search', style: TextStyle(color: Colors.white)),
-    ),
+    const SearchView(),
     const Center(
       child: Text('Library', style: TextStyle(color: Colors.white)),
     ),
-    const Center(
-      child: Text('Profile', style: TextStyle(color: Colors.white)),
-    ),
+    const ProfileView(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Main Content
@@ -59,11 +58,15 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   Container(
                     height: 60,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    decoration: const BoxDecoration(
-                      color: AppColors
-                          .background, // Match app background or slightly lighter
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).bottomNavigationBarTheme.backgroundColor,
                       border: Border(
-                        top: BorderSide(color: Colors.white10, width: 0.5),
+                        top: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 0.5,
+                        ),
                       ),
                     ),
                     child: Row(
@@ -170,14 +173,20 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             isSelected ? activeIcon : icon,
             color: isSelected
                 ? AppColors.fabGradientStart
-                : Colors.grey, // Active color matches FAB
+                : Theme.of(
+                    context,
+                  ).bottomNavigationBarTheme.unselectedItemColor,
             size: 24,
           ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? AppColors.fabGradientStart : Colors.grey,
+              color: isSelected
+                  ? AppColors.fabGradientStart
+                  : Theme.of(
+                      context,
+                    ).bottomNavigationBarTheme.unselectedItemColor,
               fontSize: 10,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),

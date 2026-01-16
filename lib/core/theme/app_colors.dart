@@ -32,4 +32,11 @@ class AppColors {
   // Functional
   static const Color error = Color(0xFFCF6679);
   static const Color success = Color(0xFF00C851);
+
+  // Light Theme Colors
+  static const Color backgroundLight = Color(0xFFF5F5F7);
+  static const Color surfaceLight = Colors.white;
+  static const Color cardLight = Colors.white;
+  static const Color textPrimaryLight = Color(0xFF1C1C1E);
+  static const Color textSecondaryLight = Color(0xFF8E8E93);
 }

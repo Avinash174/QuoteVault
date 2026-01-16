@@ -24,4 +24,20 @@ class QuoteRepository {
       throw Exception('Failed to fetch quotes: $e');
     }
   }
+
+  Future<Quote> fetchQuoteOfTheDay() async {
+    try {
+      return await _apiService.getQuoteOfTheDay();
+    } catch (e) {
+      throw Exception('Failed to fetch Quote of the Day: $e');
+    }
+  }
+
+  Future<List<String>> fetchAuthors({int limit = 20, int offset = 0}) async {
+    try {
+      return await _apiService.getAuthors(limit: limit, offset: offset);
+    } catch (e) {
+      throw Exception('Failed to fetch authors: $e');
+    }
+  }
 }

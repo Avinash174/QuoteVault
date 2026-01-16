@@ -36,8 +36,9 @@ class QuoteViewModel extends _$QuoteViewModel {
         state = AsyncData([...currentList, ...newQuotes]);
       }
     } catch (e) {
-      // Handle error (optional: show snackbar via a side effect provider)
-      // For now, we swallow the error to avoiding breaking the list
+      // Re-throw so the UI can handle it (e.g. show a SnackBar)
+      // We do not want to set state = AsyncError because that would replace the list with an error view
+      rethrow;
     } finally {
       _isLoadingMore = false;
     }
@@ -48,4 +49,9 @@ class QuoteViewModel extends _$QuoteViewModel {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchQuotes(page: 1));
   }
+}
+
+@riverpod
+Future<Quote> quoteOfTheDay(QuoteOfTheDayRef ref) {
+  return ref.read(quoteRepositoryProvider).fetchQuoteOfTheDay();
 }
