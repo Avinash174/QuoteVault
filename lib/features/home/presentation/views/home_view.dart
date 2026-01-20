@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../widgets/quote_card.dart';
+import '../widgets/quote_card_shimmer.dart';
 import '../providers/quote_viewmodel.dart';
 import '../providers/authors_viewmodel.dart';
 import '../../../../data/models/quote_model.dart';
@@ -98,8 +99,7 @@ class HomeView extends ConsumerWidget {
                         final qodAsync = ref.watch(quoteOfTheDayProvider);
                         return qodAsync.when(
                           data: (quote) => QuoteCard(quote: quote),
-                          loading: () =>
-                              const Center(child: CircularProgressIndicator()),
+                          loading: () => const QuoteCardShimmer(),
                           error: (error, _) => Text(
                             'Unable to load Quote of the Day',
                             style: TextStyle(
@@ -175,8 +175,11 @@ class HomeView extends ConsumerWidget {
                   return QuoteCard(quote: quotes[index]);
                 }, childCount: quotes.length),
               ),
-              loading: () => const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator()),
+              loading: () => SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => const QuoteCardShimmer(),
+                  childCount: 6,
+                ),
               ),
               error: (error, stack) => SliverFillRemaining(
                 child: ErrorView(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/quote_model.dart';
+import '../../../library/presentation/providers/library_viewmodel.dart';
 import 'share_bottom_sheet.dart';
 
 class QuoteCard extends ConsumerWidget {
@@ -21,6 +23,11 @@ class QuoteCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch favorite state
+    final isFavorite = ref.watch(
+      libraryViewModelProvider.select((items) => items.contains(quote)),
+    );
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       height: 300,
@@ -105,13 +112,37 @@ class QuoteCard extends ConsumerWidget {
                     const SizedBox(width: 12),
                     ElevatedButton.icon(
                       onPressed: () {
-                        // TODO: Implement toggle favorite
+                        ref
+                            .read(libraryViewModelProvider.notifier)
+                            .toggleFavorite(quote);
                       },
-                      icon: const Icon(Icons.favorite, size: 18),
-                      label: const Text('Favorite'),
+                      icon:
+                          Icon(
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                size: 18,
+                                color: isFavorite ? Colors.red : Colors.white,
+                              )
+                              .animate(target: isFavorite ? 1 : 0)
+                              .scale(
+                                begin: const Offset(1, 1),
+                                end: const Offset(1.2, 1.2),
+                                duration: 200.ms,
+                                curve: Curves.easeInOut,
+                              )
+                              .then()
+                              .scale(
+                                begin: const Offset(1.2, 1.2),
+                                end: const Offset(1, 1),
+                                duration: 100.ms,
+                              ),
+                      label: Text(isFavorite ? 'Saved' : 'Save'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
-                        foregroundColor: Colors.white,
+                        backgroundColor: isFavorite
+                            ? Colors.white.withOpacity(0.9)
+                            : AppColors.accent,
+                        foregroundColor: isFavorite ? Colors.red : Colors.white,
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -129,6 +160,6 @@ class QuoteCard extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0);
   }
 }

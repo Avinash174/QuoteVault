@@ -5,6 +5,7 @@ import '../views/home_view.dart';
 import '../../../../features/search/presentation/views/search_view.dart';
 
 import '../../../../features/profile/presentation/views/profile_view.dart';
+import '../../../../features/library/presentation/views/library_view.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -19,9 +20,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   final List<Widget> _screens = [
     const HomeView(), // Explore
     const SearchView(),
-    const Center(
-      child: Text('Library', style: TextStyle(color: Colors.white)),
-    ),
+    const LibraryView(),
     const ProfileView(),
   ];
 
