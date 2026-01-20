@@ -15,7 +15,6 @@ class SettingsView extends ConsumerStatefulWidget {
 class _SettingsViewState extends ConsumerState<SettingsView> {
   // Local state for toggles until we wire up ViewModels
   bool _dailyInspiration = true;
-  bool _supabaseSync = true;
 
   @override
   @override
@@ -92,28 +91,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                   builder: (context) => const NotificationTimeView(),
                 ),
               );
-            },
-          ),
-
-          const SizedBox(height: 24),
-          _buildSectionHeader('CLOUD SYNC'),
-          _buildToggleTile(
-            icon: Icons.sync,
-            iconColor: Colors.green,
-            title: 'Supabase Cloud Sync',
-            subtitle: 'Last synced: 2m ago',
-            value: _supabaseSync,
-            onChanged: (val) => setState(() => _supabaseSync = val),
-          ),
-          const SizedBox(height: 12),
-          _buildActionTile(
-            icon: Icons.refresh,
-            iconColor: Colors.grey,
-            title: 'Sync Database Now',
-            onTap: () {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Syncing data...')));
             },
           ),
 

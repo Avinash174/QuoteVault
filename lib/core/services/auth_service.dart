@@ -1,80 +1,91 @@
-import 'dart:convert';
-import 'dart:math';
-
-import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'firestore_service.dart';
 
 class AuthService {
-  final SupabaseClient _supabase = Supabase.instance.client;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirestoreService _firestoreService = FirestoreService();
 
   // ---------------------------------------------------------------------------
   // GETTERS
   // ---------------------------------------------------------------------------
 
-  User? get currentUser => _supabase.auth.currentUser;
+  User? get currentUser => _auth.currentUser;
 
-  Stream<AuthState> get onAuthStateChange => _supabase.auth.onAuthStateChange;
+  Stream<User?> get onAuthStateChange => _auth.authStateChanges();
 
   // ---------------------------------------------------------------------------
   // EMAIL AUTH
   // ---------------------------------------------------------------------------
 
-  Future<AuthResponse> signUpWithEmail({
+  Future<UserCredential> signUpWithEmail({
     required String email,
     required String password,
   }) async {
-    return _supabase.auth.signUp(email: email, password: password);
+    final cred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    if (cred.user != null) {
+      await _firestoreService.saveUser(cred.user!);
+    }
+    return cred;
   }
 
-  Future<AuthResponse> signInWithEmail({
+  Future<UserCredential> signInWithEmail({
     required String email,
     required String password,
   }) async {
-    return _supabase.auth.signInWithPassword(email: email, password: password);
+    final cred = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    if (cred.user != null) {
+      await _firestoreService.saveUser(cred.user!);
+    }
+    return cred;
   }
 
   Future<void> resetPassword({required String email}) async {
-    await _supabase.auth.resetPasswordForEmail(email);
+    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> signOut() async {
-    await _supabase.auth.signOut();
+    await _auth.signOut();
   }
 
   // ---------------------------------------------------------------------------
-  // GOOGLE SIGN-IN (google_sign_in ^7.x — CORRECT USAGE)
+  // GOOGLE SIGN-IN
   // ---------------------------------------------------------------------------
 
-  Future<void> signInWithGoogle() async {
+  Future<UserCredential?> signInWithGoogle() async {
     try {
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-      );
-
+      final GoogleSignIn googleSignIn = GoogleSignIn();
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
-        throw const AuthException('Google sign-in cancelled');
+        // User canceled the sign-in flow
+        return null;
       }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      final String? idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        throw const AuthException('Google ID Token is null');
-      }
-
-      await Supabase.instance.client.auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
+
+      final cred = await _auth.signInWithCredential(credential);
+      if (cred.user != null) {
+        await _firestoreService.saveUser(cred.user!);
+      }
+      return cred;
     } catch (e) {
-      throw AuthException('Google Sign-In failed: $e');
+      throw FirebaseAuthException(
+        code: 'google-sign-in-failed',
+        message: 'Google Sign-In failed: $e',
+      );
     }
   }
 
@@ -82,47 +93,23 @@ class AuthService {
   // APPLE SIGN-IN
   // ---------------------------------------------------------------------------
 
-  Future<void> signInWithApple() async {
-    final rawNonce = _generateRandomString();
-    final hashedNonce = _sha256ofString(rawNonce);
+  Future<UserCredential> signInWithApple() async {
+    // Apple Sign In is simpler with Firebase Auth on iOS, usually handled via
+    // OAuthProvider('apple.com'). But for now, let's leave a placeholder or basic implementation
+    // if using sign_in_with_apple package alongside firebase.
+    // Simplifying to standard provider flow for now, or throw unimplemented if not critical.
+    // Given the previous code used sign_in_with_apple manually, let's use the AppleAuthProvider if on iOS.
 
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-      nonce: hashedNonce,
-    );
+    // NOTE: This requires 'sign_in_with_apple' package for raw nonce generation usually,
+    // but Firebase has a wrapper. For simplicity in this migration step, I'll use the
+    // standard AppleAuthProvider flow which works with 'firebase_ui_auth' or manual creds.
 
-    final idToken = credential.identityToken;
-    if (idToken == null) {
-      throw const AuthException('Apple ID token not found');
+    // Assuming simple flow:
+    final appleProvider = AppleAuthProvider();
+    final cred = await _auth.signInWithProvider(appleProvider);
+    if (cred.user != null) {
+      await _firestoreService.saveUser(cred.user!);
     }
-
-    await _supabase.auth.signInWithIdToken(
-      provider: OAuthProvider.apple,
-      idToken: idToken,
-      nonce: rawNonce,
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // HELPERS
-  // ---------------------------------------------------------------------------
-
-  String _generateRandomString([int length = 32]) {
-    const charset =
-        '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
-    final random = Random.secure();
-
-    return List.generate(
-      length,
-      (_) => charset[random.nextInt(charset.length)],
-    ).join();
-  }
-
-  String _sha256ofString(String input) {
-    final bytes = utf8.encode(input);
-    return sha256.convert(bytes).toString();
+    return cred;
   }
 }

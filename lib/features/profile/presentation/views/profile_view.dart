@@ -2,120 +2,198 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../settings/presentation/views/settings_view.dart';
 import '../../../auth/presentation/views/login_view.dart';
+import '../../../../core/services/auth_service.dart';
 
-class ProfileView extends StatelessWidget {
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Row(
-          children: [
-            Icon(Icons.library_books, color: AppColors.accent, size: 24),
-            SizedBox(width: 8),
-            Text(
-              'QuoteVault',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                color: Colors.white,
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch auth state changes to rebuild UI
+    final userStream = FirebaseAuth.instance.authStateChanges();
+
+    return StreamBuilder<User?>(
+      stream: userStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            backgroundColor: AppColors.background,
+            body: Center(
+              child: CircularProgressIndicator(color: AppColors.accent),
+            ),
+          );
+        }
+        final user = snapshot.data;
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Row(
+              children: [
+                Icon(Icons.library_books, color: AppColors.accent, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'QuoteVault',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings, color: Colors.grey),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsView(),
+                    ),
+                  );
+                },
               ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.grey),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsView()),
-              );
-            },
+            ],
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // Avatar Section
-            _buildProfileHeader(context),
-            const SizedBox(height: 30),
-
-            // Stats Cards
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildStatCard('482', 'SAVED'),
-                _buildStatCard('12', 'FOLDERS', isAccent: true),
-                _buildStatCard(
-                  '15',
-                  'STREAK',
-                  isAccent: true,
-                  accentColor: Colors.pinkAccent,
+                // Avatar Section
+                _buildProfileHeader(context, user),
+                const SizedBox(height: 30),
+
+                // Stats Cards
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildStatCard('482', 'SAVED'),
+                    _buildStatCard('12', 'FOLDERS', isAccent: true),
+                    _buildStatCard(
+                      '15',
+                      'STREAK',
+                      isAccent: true,
+                      accentColor: Colors.pinkAccent,
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 30),
+
+                // Daily Goal
+                _buildDailyGoalCard(),
+                const SizedBox(height: 30),
+
+                // My Collections
+                _buildSectionHeader('My Collections', showSeeAll: true),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildCollectionCard(
+                        'Inner Peace',
+                        '124 quotes',
+                        Icons.self_improvement,
+                        Colors.indigoAccent,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildCollectionCard(
+                        'Productivity',
+                        '56 quotes',
+                        Icons.work_history,
+                        Colors.pinkAccent,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 30),
+
+                // Recently Saved
+                _buildSectionHeader('Recently Saved'),
+                const SizedBox(height: 16),
+                _buildQuoteCard(
+                  'The only way to do great work is to love what you do.',
+                  'STEVE JOBS',
+                  AppColors.accent,
+                ),
+                const SizedBox(height: 16),
+                _buildQuoteCard(
+                  'Difficulty is a nurse of greatness.',
+                  'WILLIAM BRYANT',
+                  Colors.pinkAccent,
+                ),
+                const SizedBox(height: 100), // Bottom padding for FAB
               ],
             ),
-            const SizedBox(height: 30),
-
-            // Daily Goal
-            _buildDailyGoalCard(),
-            const SizedBox(height: 30),
-
-            // My Collections
-            _buildSectionHeader('My Collections', showSeeAll: true),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildCollectionCard(
-                    'Inner Peace',
-                    '124 quotes',
-                    Icons.self_improvement,
-                    Colors.indigoAccent,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildCollectionCard(
-                    'Productivity',
-                    '56 quotes',
-                    Icons.work_history,
-                    Colors.pinkAccent,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-
-            // Recently Saved
-            _buildSectionHeader('Recently Saved'),
-            const SizedBox(height: 16),
-            _buildQuoteCard(
-              'The only way to do great work is to love what you do.',
-              'STEVE JOBS',
-              AppColors.accent,
-            ),
-            const SizedBox(height: 16),
-            _buildQuoteCard(
-              'Difficulty is a nurse of greatness.',
-              'WILLIAM BRYANT',
-              Colors.pinkAccent,
-            ),
-            const SizedBox(height: 100), // Bottom padding for FAB
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileHeader(BuildContext context, User? user) {
+    if (user == null) {
+      return Column(
+        children: [
+          const CircleAvatar(
+            radius: 50,
+            backgroundColor: AppColors.card,
+            child: Icon(Icons.person, size: 50, color: Colors.grey),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Guest User',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginView()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.accent,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Text(
+                'Sign In / Create Account',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Logged in user view
+    final displayName = user.displayName ?? 'QuoteVault User';
+    final email = user.email ?? '';
+    final photoUrl = user.photoURL;
+    final initials = displayName.isNotEmpty
+        ? displayName.substring(0, 1).toUpperCase()
+        : email.isNotEmpty
+        ? email.substring(0, 1).toUpperCase()
+        : '?';
+
     return Column(
       children: [
         Stack(
@@ -138,17 +216,22 @@ class ProfileView extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 50,
                 backgroundColor: Colors.white,
-                child: Text(
-                  'AR',
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                backgroundImage: photoUrl != null
+                    ? NetworkImage(photoUrl)
+                    : null,
+                child: photoUrl == null
+                    ? Text(
+                        initials,
+                        style: const TextStyle(
+                          color: AppColors.accent,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    : null,
               ),
             ),
             Container(
@@ -162,43 +245,38 @@ class ProfileView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Alex Rivera',
-          style: TextStyle(
+        Text(
+          displayName,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          'Philosophy enthusiast • Curator',
-          style: TextStyle(color: Colors.grey[400], fontSize: 14),
-        ),
+        Text(email, style: TextStyle(color: Colors.grey[400], fontSize: 14)),
         const SizedBox(height: 16),
+        // Sign Out Button (Replaces "Synced")
         GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const LoginView()),
-            );
+          onTap: () async {
+            await AuthService().signOut();
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.teal.withOpacity(0.3)),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.sync, color: Colors.teal, size: 16),
+                Icon(Icons.logout, color: Colors.red, size: 16),
                 SizedBox(width: 8),
                 Text(
-                  'SYNCED',
+                  'SIGN OUT',
                   style: TextStyle(
-                    color: Colors.teal,
+                    color: Colors.red,
                     fontWeight: FontWeight.bold,
                     fontSize: 12,
                     letterSpacing: 1.2,

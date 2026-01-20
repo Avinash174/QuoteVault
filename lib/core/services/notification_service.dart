@@ -2,7 +2,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz_data;
 import '../../data/models/quote_model.dart';
-import 'supabase_service.dart';
+import '../../data/services/api_service.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -58,8 +58,14 @@ class NotificationService {
   }
 
   Future<void> scheduleDailyNotification(int hour, int minute) async {
-    final SupabaseService supabaseService = SupabaseService();
-    final Quote? quote = await supabaseService.getRandomQuote();
+    final ApiService apiService = ApiService();
+    Quote? quote;
+    try {
+      quote = await apiService.getQuoteOfTheDay();
+    } catch (_) {
+      // Fallback if API fails
+      quote = null;
+    }
 
     final String title = 'Quote of the Day';
     final String body = quote != null

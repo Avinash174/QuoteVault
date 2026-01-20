@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/auth_service.dart';
@@ -61,21 +62,21 @@ class _LoginViewState extends State<LoginView> {
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Account created. Please check your email for verification.',
-              ),
-            ),
+            const SnackBar(content: Text('Account created successfully!')),
           );
         }
       }
 
-      // ❗ DO NOT navigate here
-      // Navigation must be driven by auth state listener
-    } on AuthException catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop(); // Return to previous screen (Profile)
+      }
+    } on FirebaseAuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.message ?? 'Authentication failed'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
@@ -100,11 +101,16 @@ class _LoginViewState extends State<LoginView> {
     setState(() => _isLoading = true);
     try {
       await authMethod();
-      // ❗ OAuth returns via deep-link / auth state
-    } on AuthException catch (e) {
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } on FirebaseAuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(e.message ?? 'Social authentication failed'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } catch (e) {
@@ -261,16 +267,24 @@ class _LoginViewState extends State<LoginView> {
                 children: [
                   Expanded(
                     child: _socialButton(
-                      'Google',
-                      () => _handleSocialAuth(_authService.signInWithGoogle),
+                      icon: FontAwesomeIcons.google,
+                      label: 'Google',
+                      onTap: () =>
+                          _handleSocialAuth(_authService.signInWithGoogle),
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
                     ),
                   ),
                   const SizedBox(width: 16),
                   if (Theme.of(context).platform == TargetPlatform.iOS)
                     Expanded(
                       child: _socialButton(
-                        'Apple',
-                        () => _handleSocialAuth(_authService.signInWithApple),
+                        icon: FontAwesomeIcons.apple,
+                        label: 'Apple',
+                        onTap: () =>
+                            _handleSocialAuth(_authService.signInWithApple),
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
                       ),
                     ),
                 ],
@@ -344,10 +358,26 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 
-  Widget _socialButton(String label, VoidCallback onTap) {
-    return ElevatedButton(
-      onPressed: _isLoading ? null : onTap,
-      child: Text(label),
+  Widget _socialButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required Color backgroundColor,
+    required Color foregroundColor,
+  }) {
+    return SizedBox(
+      height: 50,
+      child: ElevatedButton.icon(
+        onPressed: _isLoading ? null : onTap,
+        icon: FaIcon(icon, color: foregroundColor),
+        label: Text(label, style: TextStyle(color: foregroundColor)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
     );
   }
 }
