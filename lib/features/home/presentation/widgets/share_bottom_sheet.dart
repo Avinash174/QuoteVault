@@ -70,7 +70,7 @@ class ShareBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'QUOTEVAULT',
+            'THOUGHTVAULT',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
               color: AppColors.textSecondary,
               letterSpacing: 2.0,

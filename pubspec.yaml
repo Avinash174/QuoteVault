@@ -1,7 +1,7 @@
 name: quotevault
 description: "A new Flutter project."
 publish_to: "none"
-version: 0.1.0
+version: 1.0.0+1
 
 environment:
   sdk: ^3.10.4
@@ -30,26 +30,36 @@ dependencies:
   flutter_animate: ^4.5.2
   firebase_core: ^4.4.0
   firebase_auth: ^6.1.4
+  firebase_messaging: ^16.1.1
   cloud_firestore: ^6.1.2
   font_awesome_flutter: ^10.12.0
+  image_picker: ^1.2.1
+  firebase_storage: ^13.0.6
+  package_info_plus: ^9.0.0
+  url_launcher: ^6.3.2
+  awesome_snackbar_content: ^0.1.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
-  flutter_launcher_icons: ^0.13.1
+
   build_runner: ^2.4.8
   riverpod_generator: ^2.3.9
   freezed: ^2.4.6
   json_serializable: ^6.7.1
+  flutter_launcher_icons: ^0.13.1
 
-flutter_launcher_icons:
-  android: "ic_launcher"
+flutter_icons:
+  android: "launcher_icon"
   ios: true
-  image_path: "assets/icon/ic_launcher.png"
+  image_path: "assets/icon/app_logo.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#121212"
+  adaptive_icon_foreground: "assets/icon/app_logo.png"
 
 flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/icon/app_logo.png

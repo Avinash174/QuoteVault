@@ -6,7 +6,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/firestore_service.dart';
 import '../../../../data/models/quote_model.dart';
 
 class QuoteGeneratorView extends StatefulWidget {
@@ -29,6 +31,19 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
     'Custom': [Colors.grey.shade800, Colors.black],
   };
 
+  @override
+  void initState() {
+    super.initState();
+    _recordRead();
+  }
+
+  void _recordRead() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      FirestoreService().incrementQuotesRead(user.uid);
+    }
+  }
+
   void _shareImage() async {
     try {
       final Uint8List? image = await _screenshotController.capture();
@@ -42,7 +57,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
         // Share the file
         await Share.shareXFiles([
           XFile(imagePath.path),
-        ], text: 'Check out this quote from QuoteVault!');
+        ], text: 'Check out this quote from ThoughtVault!');
       }
     } catch (e) {
       if (mounted) {
@@ -84,7 +99,9 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: _themes[_selectedTheme]![0].withOpacity(0.3),
+                        color: _themes[_selectedTheme]![0].withValues(
+                          alpha: 0.3,
+                        ),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -97,12 +114,12 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                         children: [
                           Icon(
                             Icons.format_quote,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                           Icon(
                             Icons.wifi,
                             size: 16,
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ],
                       ),
@@ -110,7 +127,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                       Text(
                         'QUOTE OF THE DAY',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.6),
+                          color: Colors.white.withValues(alpha: 0.6),
                           fontSize: 10,
                           letterSpacing: 2,
                           fontWeight: FontWeight.bold,
@@ -133,7 +150,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                           Text(
                             "— ${widget.quote.author}",
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: Colors.white.withValues(alpha: 0.7),
                               fontSize: 14,
                               fontStyle: FontStyle.italic,
                             ),
@@ -145,10 +162,10 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(20),
                             ),
-                            child: Row(
+                            child: const Row(
                               children: [
                                 Icon(
                                   Icons.format_quote,
@@ -157,7 +174,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                                 ),
                                 SizedBox(width: 4),
                                 Text(
-                                  "QuoteVault",
+                                  "ThoughtVault",
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -179,7 +196,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                             width: 40,
                             height: 40,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.05),
+                              color: Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
@@ -228,54 +245,63 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: _themes.keys.map((theme) {
-                    final isSelected = _selectedTheme == theme;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedTheme = theme),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: _themes[theme]!,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: _themes.keys.map((theme) {
+                      final isSelected = _selectedTheme == theme;
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 16),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _selectedTheme = theme),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: _themes[theme]!,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: isSelected
+                                      ? Border.all(
+                                          color: AppColors.accent,
+                                          width: 2,
+                                        )
+                                      : null,
+                                ),
+                                child: isSelected
+                                    ? const Center(
+                                        child: Icon(
+                                          Icons.check,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : null,
                               ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: isSelected
-                                  ? Border.all(
-                                      color: AppColors.accent,
-                                      width: 2,
-                                    )
-                                  : null,
-                            ),
-                            child: isSelected
-                                ? const Center(
-                                    child: Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : null,
+                              const SizedBox(height: 8),
+                              Text(
+                                theme[0].toUpperCase() + theme.substring(1),
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? AppColors.accent
+                                      : Colors.grey,
+                                  fontSize: 12,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            theme,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? AppColors.accent
-                                  : Colors.grey,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
                 const SizedBox(height: 24),
                 // Footer Tip
@@ -284,7 +310,9 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E1E2E),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.indigo.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Colors.indigo.withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -296,7 +324,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          "Theme settings are synced instantly via Supabase and will apply to your widget automatically.",
+                          "Theme settings are synced instantly via Firebase and will apply to your widget automatically.",
                           style: TextStyle(
                             color: Colors.grey[400],
                             fontSize: 12,

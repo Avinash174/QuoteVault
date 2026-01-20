@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'dart:developer' as developer;
 import 'firestore_service.dart';
 
 class AuthService {
@@ -22,9 +23,14 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    developer.log('Attempting sign up: $email', name: 'ThoughtVault.Auth');
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
+    );
+    developer.log(
+      'User signed up: ${cred.user?.email}',
+      name: 'ThoughtVault.Auth',
     );
     if (cred.user != null) {
       await _firestoreService.saveUser(cred.user!);
@@ -36,9 +42,14 @@ class AuthService {
     required String email,
     required String password,
   }) async {
+    developer.log('Attempting sign in: $email', name: 'ThoughtVault.Auth');
     final cred = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
+    );
+    developer.log(
+      'User signed in: ${cred.user?.email}',
+      name: 'ThoughtVault.Auth',
     );
     if (cred.user != null) {
       await _firestoreService.saveUser(cred.user!);
@@ -47,10 +58,21 @@ class AuthService {
   }
 
   Future<void> resetPassword({required String email}) async {
+    developer.log('Resetting password for: $email', name: 'ThoughtVault.Auth');
     await _auth.sendPasswordResetEmail(email: email);
   }
 
   Future<void> signOut() async {
+    developer.log('User signing out', name: 'ThoughtVault.Auth');
+    try {
+      await GoogleSignIn().signOut();
+    } catch (e) {
+      // Ignore if google sign in wasn't used or fails
+      developer.log(
+        'Google sign out silent error: $e',
+        name: 'ThoughtVault.Auth',
+      );
+    }
     await _auth.signOut();
   }
 
@@ -82,6 +104,11 @@ class AuthService {
       }
       return cred;
     } catch (e) {
+      developer.log(
+        'Google Sign-In failed',
+        name: 'ThoughtVault.Auth',
+        error: e,
+      );
       throw FirebaseAuthException(
         code: 'google-sign-in-failed',
         message: 'Google Sign-In failed: $e',
@@ -105,8 +132,13 @@ class AuthService {
     // standard AppleAuthProvider flow which works with 'firebase_ui_auth' or manual creds.
 
     // Assuming simple flow:
+    developer.log('Starting Apple Sign-In', name: 'ThoughtVault.Auth');
     final appleProvider = AppleAuthProvider();
     final cred = await _auth.signInWithProvider(appleProvider);
+    developer.log(
+      'Apple Sign-In successful: ${cred.user?.uid}',
+      name: 'ThoughtVault.Auth',
+    );
     if (cred.user != null) {
       await _firestoreService.saveUser(cred.user!);
     }

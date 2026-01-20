@@ -1,158 +1,203 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../settings/presentation/views/settings_view.dart';
 import '../../../auth/presentation/views/login_view.dart';
 import '../../../../core/services/auth_service.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/auth_provider.dart';
+import '../../../../data/models/user_stats.dart';
+import '../../../library/presentation/providers/collection_viewmodel.dart';
+import '../../../library/presentation/providers/library_viewmodel.dart';
+import '../providers/stats_provider.dart';
+import 'edit_profile_view.dart';
+import 'edit_goal_view.dart';
 
 class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Watch auth state changes to rebuild UI
-    final userStream = FirebaseAuth.instance.authStateChanges();
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return StreamBuilder<User?>(
-      stream: userStream,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: AppColors.background,
-            body: Center(
-              child: CircularProgressIndicator(color: AppColors.accent),
+    if (authState.isLoading) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.accent),
+        ),
+      );
+    }
+
+    final stats =
+        ref.watch(userStatsNotifierProvider).value ?? const UserStats();
+    final favorites = ref.watch(libraryViewModelProvider);
+    final collections = ref.watch(collectionViewModelProvider);
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Row(
+          children: [
+            const Icon(Icons.library_books, color: AppColors.accent, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'ThoughtVault',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                color: isDark ? Colors.white : AppColors.textPrimaryLight,
+              ),
             ),
-          );
-        }
-        final user = snapshot.data;
-
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: const Row(
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.grey),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsView()),
+              );
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildProfileHeader(context, user),
+            const SizedBox(height: 30),
+            Row(
               children: [
-                Icon(Icons.library_books, color: AppColors.accent, size: 24),
-                SizedBox(width: 8),
-                Text(
-                  'QuoteVault',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: Colors.white,
+                Expanded(
+                  child: _buildStatCard(
+                    context,
+                    favorites.length.toString(),
+                    'SAVED',
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildStatCard(
+                    context,
+                    collections.when(
+                      data: (data) => data.length.toString(),
+                      loading: () => '-',
+                      error: (_, __) => '0',
+                    ),
+                    'COLLECTIONS',
+                    isAccent: true,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildStatCard(
+                    context,
+                    stats.streak.toString(),
+                    'STREAK',
+                    isAccent: true,
+                    accentColor: Colors.pinkAccent,
                   ),
                 ),
               ],
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings, color: Colors.grey),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsView(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Avatar Section
-                _buildProfileHeader(context, user),
-                const SizedBox(height: 30),
-
-                // Stats Cards
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildStatCard('482', 'SAVED'),
-                    _buildStatCard('12', 'FOLDERS', isAccent: true),
-                    _buildStatCard(
-                      '15',
-                      'STREAK',
-                      isAccent: true,
-                      accentColor: Colors.pinkAccent,
-                    ),
-                  ],
+            const SizedBox(height: 30),
+            _buildDailyGoalCard(context, stats),
+            const SizedBox(height: 30),
+            _buildSectionHeader(context, 'My Collections', showSeeAll: true),
+            const SizedBox(height: 16),
+            if (collections.isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (collections.valueOrNull == null ||
+                collections.value!.isEmpty)
+              Center(
+                child: Text(
+                  'No collections yet',
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
-                const SizedBox(height: 30),
-
-                // Daily Goal
-                _buildDailyGoalCard(),
-                const SizedBox(height: 30),
-
-                // My Collections
-                _buildSectionHeader('My Collections', showSeeAll: true),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCollectionCard(
-                        'Inner Peace',
-                        '124 quotes',
-                        Icons.self_improvement,
-                        Colors.indigoAccent,
-                      ),
+              )
+            else
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCollectionCard(
+                      context,
+                      collections.value![0].name,
+                      '${collections.value![0].quotes.length} quotes',
+                      Icons.folder,
+                      Colors.indigoAccent,
                     ),
+                  ),
+                  if (collections.value!.length > 1) ...[
                     const SizedBox(width: 16),
                     Expanded(
                       child: _buildCollectionCard(
-                        'Productivity',
-                        '56 quotes',
-                        Icons.work_history,
+                        context,
+                        collections.value![1].name,
+                        '${collections.value![1].quotes.length} quotes',
+                        Icons.folder,
                         Colors.pinkAccent,
                       ),
                     ),
-                  ],
+                  ] else if (collections.value!.length == 1)
+                    const Expanded(child: SizedBox()),
+                ],
+              ),
+            const SizedBox(height: 30),
+            _buildSectionHeader(context, 'Recently Saved'),
+            const SizedBox(height: 16),
+            if (favorites.isEmpty)
+              Center(
+                child: Text(
+                  'No saved quotes yet',
+                  style: TextStyle(color: Colors.grey[600]),
                 ),
-                const SizedBox(height: 30),
-
-                // Recently Saved
-                _buildSectionHeader('Recently Saved'),
-                const SizedBox(height: 16),
-                _buildQuoteCard(
-                  'The only way to do great work is to love what you do.',
-                  'STEVE JOBS',
-                  AppColors.accent,
-                ),
-                const SizedBox(height: 16),
-                _buildQuoteCard(
-                  'Difficulty is a nurse of greatness.',
-                  'WILLIAM BRYANT',
-                  Colors.pinkAccent,
-                ),
-                const SizedBox(height: 100), // Bottom padding for FAB
-              ],
-            ),
-          ),
-        );
-      },
+              )
+            else
+              ...favorites
+                  .take(2)
+                  .map(
+                    (quote) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildQuoteCard(
+                        context,
+                        quote.text,
+                        quote.author,
+                        AppColors.accent,
+                      ),
+                    ),
+                  ),
+            const SizedBox(height: 100),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildProfileHeader(BuildContext context, User? user) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (user == null) {
       return Column(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 50,
-            backgroundColor: AppColors.card,
-            child: Icon(Icons.person, size: 50, color: Colors.grey),
+            backgroundColor: isDark
+                ? AppColors.card
+                : Colors.black.withValues(alpha: 0.05),
+            child: const Icon(Icons.person, size: 50, color: Colors.grey),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Guest User',
             style: TextStyle(
-              color: Colors.white,
+              color: isDark ? Colors.white : AppColors.textPrimaryLight,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -184,8 +229,7 @@ class ProfileView extends ConsumerWidget {
       );
     }
 
-    // Logged in user view
-    final displayName = user.displayName ?? 'QuoteVault User';
+    final displayName = user.displayName ?? 'ThoughtVault User';
     final email = user.email ?? '';
     final photoUrl = user.photoURL;
     final initials = displayName.isNotEmpty
@@ -196,59 +240,67 @@ class ProfileView extends ConsumerWidget {
 
     return Column(
       children: [
-        Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.accent.withOpacity(0.5),
-                  width: 2,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const EditProfileView()),
+            );
+          },
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.accent.withValues(alpha: 0.5),
+                    width: 2,
+                  ),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.pinkAccent.withValues(alpha: 0.5),
+                      AppColors.accent.withValues(alpha: 0.5),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.pinkAccent.withOpacity(0.5),
-                    AppColors.accent.withOpacity(0.5),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.white,
+                  backgroundImage: photoUrl != null
+                      ? NetworkImage(photoUrl)
+                      : null,
+                  child: photoUrl == null
+                      ? Text(
+                          initials,
+                          style: const TextStyle(
+                            color: AppColors.accent,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
                 ),
               ),
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.white,
-                backgroundImage: photoUrl != null
-                    ? NetworkImage(photoUrl)
-                    : null,
-                child: photoUrl == null
-                    ? Text(
-                        initials,
-                        style: const TextStyle(
-                          color: AppColors.accent,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )
-                    : null,
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.edit, color: Colors.white, size: 16),
               ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.accent,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.edit, color: Colors.white, size: 16),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Text(
           displayName,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDark ? Colors.white : AppColors.textPrimaryLight,
             fontSize: 22,
             fontWeight: FontWeight.bold,
           ),
@@ -256,7 +308,6 @@ class ProfileView extends ConsumerWidget {
         const SizedBox(height: 4),
         Text(email, style: TextStyle(color: Colors.grey[400], fontSize: 14)),
         const SizedBox(height: 16),
-        // Sign Out Button (Replaces "Synced")
         GestureDetector(
           onTap: () async {
             await AuthService().signOut();
@@ -264,9 +315,11 @@ class ProfileView extends ConsumerWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.card,
+              color: isDark
+                  ? AppColors.card
+                  : Colors.black.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.red.withOpacity(0.3)),
+              border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
@@ -291,26 +344,36 @@ class ProfileView extends ConsumerWidget {
   }
 
   Widget _buildStatCard(
+    BuildContext context,
     String value,
     String label, {
     bool isAccent = false,
     Color? accentColor,
   }) {
     final color = accentColor ?? AppColors.accent;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      width: 100, // Fixed width for consistency
+      // width: 100, // Removed hardcoded width for responsiveness
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white10, width: 1),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
           Text(
             value,
             style: TextStyle(
-              color: isAccent ? color : Colors.white,
+              color: isAccent
+                  ? color
+                  : (isDark ? Colors.white : AppColors.textPrimaryLight),
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
@@ -319,7 +382,7 @@ class ProfileView extends ConsumerWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey[500],
+              color: isDark ? Colors.grey[500] : Colors.grey[600],
               fontSize: 10,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.0,
@@ -330,11 +393,15 @@ class ProfileView extends ConsumerWidget {
     );
   }
 
-  Widget _buildDailyGoalCard() {
+  Widget _buildDailyGoalCard(BuildContext context, UserStats stats) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -345,25 +412,27 @@ class ProfileView extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.indigoAccent.withOpacity(0.2),
+                  color: Colors.indigoAccent.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.bar_chart, color: Colors.indigoAccent),
               ),
               const SizedBox(width: 16),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Daily Reading Goal',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: isDark
+                            ? Colors.white
+                            : AppColors.textPrimaryLight,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
                     ),
-                    Text(
+                    const Text(
                       "TODAY'S PROGRESS",
                       style: TextStyle(
                         color: Colors.grey,
@@ -376,19 +445,21 @@ class ProfileView extends ConsumerWidget {
                 ),
               ),
               RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   children: [
                     TextSpan(
-                      text: '8',
+                      text: stats.quotesReadToday.toString(),
                       style: TextStyle(
-                        color: Colors.white,
+                        color: isDark
+                            ? Colors.white
+                            : AppColors.textPrimaryLight,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextSpan(
-                      text: ' / 10',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                      text: ' / ${stats.dailyGoal}',
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),
@@ -399,8 +470,8 @@ class ProfileView extends ConsumerWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: 0.8,
-              backgroundColor: Colors.grey[800],
+              value: (stats.quotesReadToday / stats.dailyGoal).clamp(0.0, 1.0),
+              backgroundColor: isDark ? Colors.grey[800] : Colors.black12,
               valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accent),
               minHeight: 8,
             ),
@@ -409,25 +480,42 @@ class ProfileView extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Great work! Just 2 more to go.',
-                style: TextStyle(color: Colors.grey[400], fontSize: 12),
+              Expanded(
+                child: Text(
+                  stats.quotesReadToday >= stats.dailyGoal
+                      ? 'Goal achieved! You are on fire.'
+                      : 'Great work! Just ${stats.dailyGoal - stats.quotesReadToday} more to go.',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  'Edit Goal',
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditGoalView(),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Edit Goal',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -439,22 +527,32 @@ class ProfileView extends ConsumerWidget {
   }
 
   Widget _buildCollectionCard(
+    BuildContext context,
     String title,
     String count,
     IconData icon,
     Color color,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       height: 160,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        ),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [const Color(0xFF1E1E1E), color.withOpacity(0.05)],
+          colors: [
+            isDark ? const Color(0xFF1E1E1E) : Colors.white,
+            color.withValues(alpha: 0.05),
+          ],
         ),
       ),
       child: Column(
@@ -470,15 +568,15 @@ class ProfileView extends ConsumerWidget {
                 child: LinearProgressIndicator(
                   value: 0.7,
                   minHeight: 4,
-                  backgroundColor: Colors.white10,
+                  backgroundColor: isDark ? Colors.white10 : Colors.black12,
                   valueColor: AlwaysStoppedAnimation<Color>(color),
                 ),
               ),
               const SizedBox(height: 12),
               Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                 ),
@@ -494,21 +592,32 @@ class ProfileView extends ConsumerWidget {
     );
   }
 
-  Widget _buildQuoteCard(String text, String author, Color accent) {
+  Widget _buildQuoteCard(
+    BuildContext context,
+    String text,
+    String author,
+    Color accent,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '"$text"',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: isDark ? Colors.white : AppColors.textPrimaryLight,
               fontSize: 14,
               fontStyle: FontStyle.italic,
               height: 1.5,
@@ -535,14 +644,20 @@ class ProfileView extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title, {bool showSeeAll = false}) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title, {
+    bool showSeeAll = false,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDark ? Colors.white : AppColors.textPrimaryLight,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),

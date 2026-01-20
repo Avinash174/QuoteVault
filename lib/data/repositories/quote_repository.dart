@@ -14,12 +14,19 @@ class QuoteRepository {
 
   QuoteRepository(this._apiService);
 
-  Future<List<Quote>> fetchQuotes({int page = 1, int limit = 10}) async {
+  Future<List<Quote>> fetchQuotes({
+    int page = 1,
+    int limit = 10,
+    String? category,
+  }) async {
     try {
-      // API Ninjas doesn't support pagination by page number directly in the same way,
-      // but we can request a limit. 'page' might be ignored or handled by client side if needed.
-      // For now, we just fetch 'limit' quotes.
-      return await _apiService.getQuotes(limit: limit);
+      // Calculate skip based on page and limit
+      final skip = (page - 1) * limit;
+      return await _apiService.getQuotes(
+        limit: limit,
+        skip: skip,
+        category: category,
+      );
     } catch (e) {
       throw Exception('Failed to fetch quotes: $e');
     }
@@ -38,6 +45,14 @@ class QuoteRepository {
       return await _apiService.getAuthors(limit: limit, offset: offset);
     } catch (e) {
       throw Exception('Failed to fetch authors: $e');
+    }
+  }
+
+  Future<List<Quote>> searchQuotes(String query) async {
+    try {
+      return await _apiService.searchQuotes(query);
+    } catch (e) {
+      throw Exception('Failed to search quotes: $e');
     }
   }
 }

@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../../core/services/auth_provider.dart';
 import '../../../notifications/presentation/views/notification_time_view.dart';
 import '../../../auth/presentation/views/login_view.dart';
+import '../../../../core/services/auth_service.dart';
+import 'change_password_view.dart';
+import 'privacy_policy_view.dart';
+import 'terms_of_service_view.dart';
 
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
@@ -17,7 +22,6 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
   bool _dailyInspiration = true;
 
   @override
-  @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final isDark =
@@ -25,23 +29,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         (themeMode == ThemeMode.system &&
             MediaQuery.of(context).platformBrightness == Brightness.dark);
 
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Settings',
-          style: Theme.of(context).appBarTheme.titleTextStyle,
-        ),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -96,48 +89,77 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
           const SizedBox(height: 24),
           _buildSectionHeader('ACCOUNT'),
-          _buildUserTile(),
+          _buildUserTile(user),
           const SizedBox(height: 12),
           _buildActionTile(
             icon: Icons.lock,
             iconColor: Colors.grey,
             title: 'Change Password',
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChangePasswordView(),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 12),
           _buildActionTile(
             icon: Icons.logout,
-            iconColor: Colors.redAccent.withOpacity(0.8),
+            iconColor: Colors.redAccent.withValues(alpha: 0.8),
             title: 'Log Out',
             titleColor: Colors.redAccent,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginView()),
-              );
+            onTap: () async {
+              await AuthService().signOut();
+              if (context.mounted) {
+                // If we are in settings and sign out, we can just pop settings
+                // The MainScreen (Profile) will update to Guest automatically
+                Navigator.of(context).pop();
+              }
             },
-            trailing: const SizedBox.shrink(), // No arrow for logout usually
+            trailing: const SizedBox.shrink(),
           ),
           const SizedBox(height: 40),
-          const Center(
+          Center(
             child: Column(
               children: [
-                Text(
-                  'QuoteVault v2.4.1',
+                const Text(
+                  'ThoughtVault v2.4.1',
                   style: TextStyle(color: Colors.white38, fontSize: 12),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Privacy Policy',
-                      style: TextStyle(color: AppColors.accent, fontSize: 14),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PrivacyPolicyView(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Privacy Policy',
+                        style: TextStyle(color: AppColors.accent, fontSize: 14),
+                      ),
                     ),
-                    SizedBox(width: 24),
-                    Text(
-                      'Terms of Service',
-                      style: TextStyle(color: AppColors.accent, fontSize: 14),
+                    const SizedBox(width: 24),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TermsOfServiceView(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Terms of Service',
+                        style: TextStyle(color: AppColors.accent, fontSize: 14),
+                      ),
                     ),
                   ],
                 ),
@@ -172,9 +194,12 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E), // Slightly lighter than background
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
@@ -182,15 +207,15 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.2), // Light background for icon
+            color: iconColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: iconColor, size: 20),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDark ? Colors.white : AppColors.textPrimaryLight,
             fontWeight: FontWeight.w500,
             fontSize: 16,
           ),
@@ -215,13 +240,16 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     required IconData icon,
     required Color iconColor,
     required String title,
-    Color titleColor = Colors.white,
+    Color? titleColor,
     Widget? trailing,
     required VoidCallback onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
       ),
       child: ListTile(
@@ -230,7 +258,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.2),
+            color: iconColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: iconColor, size: 20),
@@ -238,7 +266,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         title: Text(
           title,
           style: TextStyle(
-            color: titleColor,
+            color:
+                titleColor ??
+                (isDark ? Colors.white : AppColors.textPrimaryLight),
             fontWeight: FontWeight.w500,
             fontSize: 16,
           ),
@@ -250,41 +280,127 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
     );
   }
 
-  Widget _buildUserTile() {
+  Widget _buildUserTile(dynamic user) {
+    // If user is null, show guest state or alternative?
+    // User passed here is from AuthState
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    if (user == null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark
+              ? const Color(0xFF1E1E1E)
+              : Colors.black.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              radius: 24,
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.person, color: Colors.white),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Guest User',
+                    style: TextStyle(
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    'Sign in to sync data',
+                    style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginView()),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  'Sign In',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final displayName = user.displayName ?? 'ThoughtVault User';
+    final email = user.email ?? 'No Email';
+    final photoUrl = user.photoURL;
+    final initials = displayName.isNotEmpty
+        ? displayName.substring(0, 1).toUpperCase()
+        : email.isNotEmpty
+        ? email.substring(0, 1).toUpperCase()
+        : '?';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: isDark
+            ? const Color(0xFF1E1E1E)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
         children: [
-          const CircleAvatar(
+          CircleAvatar(
             radius: 24,
             backgroundColor: AppColors.accent,
-            child: Text(
-              'AT',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+            child: photoUrl == null
+                ? Text(
+                    initials,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Alex Thompson',
+                Text(
+                  displayName,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: isDark ? Colors.white : AppColors.textPrimaryLight,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
                 Text(
-                  'alex.t@example.com',
+                  email,
                   style: TextStyle(color: Colors.grey[500], fontSize: 13),
                 ),
               ],

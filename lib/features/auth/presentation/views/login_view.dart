@@ -4,6 +4,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/utils/snackbar_utils.dart'; // Added
+import '../../../home/presentation/views/main_screen.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -40,8 +42,10 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _handleAuth() async {
     if (_emailController.text.trim().isEmpty ||
         _passwordController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter email and password')),
+      SnackbarUtils.showWarning(
+        context,
+        'Missing Fields',
+        'Please enter email and password',
       );
       return;
     }
@@ -61,32 +65,34 @@ class _LoginViewState extends State<LoginView> {
         );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account created successfully!')),
+          SnackbarUtils.showSuccess(
+            context,
+            'Success',
+            'Account created successfully!',
           );
         }
       }
 
       if (mounted) {
-        Navigator.of(context).pop(); // Return to previous screen (Profile)
+        if (Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message ?? 'Authentication failed'),
-            backgroundColor: Colors.red,
-          ),
+        SnackbarUtils.showError(
+          context,
+          'Authentication Failed',
+          e.message ?? 'An error occurred',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Unexpected error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackbarUtils.showError(context, 'Error', e.toString());
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -102,25 +108,25 @@ class _LoginViewState extends State<LoginView> {
     try {
       await authMethod();
       if (mounted) {
-        Navigator.of(context).pop();
+        if (Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message ?? 'Social authentication failed'),
-            backgroundColor: Colors.red,
-          ),
+        SnackbarUtils.showError(
+          context,
+          'Social Login Failed',
+          e.message ?? 'An error occurred',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Social auth error: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        SnackbarUtils.showError(context, 'Error', e.toString());
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -133,31 +139,46 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> _handleForgotPassword() async {
     final emailController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text(
+        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        title: Text(
           'Reset Password',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
         ),
         content: TextField(
           controller: emailController,
-          style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
+          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          decoration: InputDecoration(
             hintText: 'Email',
-            hintStyle: TextStyle(color: Colors.grey),
+            hintStyle: const TextStyle(color: Colors.grey),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: isDark ? Colors.white24 : Colors.black12,
+              ),
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
           ),
           TextButton(
             onPressed: () async {
-              if (emailController.text.trim().isEmpty) return;
+              if (emailController.text.trim().isEmpty) {
+                if (mounted) {
+                  SnackbarUtils.showError(
+                    context,
+                    'Input Error',
+                    'Please enter your email',
+                  );
+                }
+                return;
+              }
 
               Navigator.pop(context);
 
@@ -167,22 +188,22 @@ class _LoginViewState extends State<LoginView> {
                 );
 
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Password reset email sent')),
+                  SnackbarUtils.showSuccess(
+                    context,
+                    'Email Sent',
+                    'Password reset email sent',
                   );
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  SnackbarUtils.showError(context, 'Error', e.toString());
                 }
               }
             },
-            child: const Text('Send Link'),
+            child: const Text(
+              'Send Link',
+              style: TextStyle(color: AppColors.accent),
+            ),
           ),
         ],
       ),
@@ -203,10 +224,10 @@ class _LoginViewState extends State<LoginView> {
           child: Column(
             children: [
               const SizedBox(height: 24),
-              const Icon(Icons.format_quote, size: 48, color: Colors.white),
+              Image.asset('assets/icon/app_logo.png', height: 80, width: 80),
               const SizedBox(height: 16),
               const Text(
-                'QuoteVault',
+                'ThoughtVault',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -252,9 +273,22 @@ class _LoginViewState extends State<LoginView> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleAuth,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(_isSignIn ? 'Sign In' : 'Create Account'),
+                      : Text(
+                          _isSignIn ? 'Sign In' : 'Create Account',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
 
@@ -263,9 +297,10 @@ class _LoginViewState extends State<LoginView> {
               const Divider(color: Colors.white10),
               const SizedBox(height: 24),
 
-              Row(
+              Column(
                 children: [
-                  Expanded(
+                  SizedBox(
+                    width: double.infinity,
                     child: _socialButton(
                       icon: FontAwesomeIcons.google,
                       label: 'Google',
@@ -275,18 +310,10 @@ class _LoginViewState extends State<LoginView> {
                       foregroundColor: Colors.black,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(height: 16),
                   if (Theme.of(context).platform == TargetPlatform.iOS)
-                    Expanded(
-                      child: _socialButton(
-                        icon: FontAwesomeIcons.apple,
-                        label: 'Apple',
-                        onTap: () =>
-                            _handleSocialAuth(_authService.signInWithApple),
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
+                    // Removed Apple Sign In per user request
+                    const SizedBox.shrink(),
                 ],
               ),
             ],
@@ -301,29 +328,60 @@ class _LoginViewState extends State<LoginView> {
   // ---------------------------------------------------------------------------
 
   Widget _buildSegmentedControl() {
-    return Row(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _isSignIn = true),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              color: _isSignIn ? AppColors.card : Colors.transparent,
-              child: const Center(child: Text('Sign In')),
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _isSignIn = true),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _isSignIn ? AppColors.accent : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    'Sign In',
+                    style: TextStyle(
+                      color: _isSignIn ? Colors.white : Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-        Expanded(
-          child: GestureDetector(
-            onTap: () => setState(() => _isSignIn = false),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              color: !_isSignIn ? AppColors.card : Colors.transparent,
-              child: const Center(child: Text('Create')),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _isSignIn = false),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: !_isSignIn ? AppColors.accent : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    'Create',
+                    style: TextStyle(
+                      color: !_isSignIn ? Colors.white : Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -23,7 +23,7 @@ final quoteOfTheDayProvider = AutoDisposeFutureProvider<Quote>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef QuoteOfTheDayRef = AutoDisposeFutureProviderRef<Quote>;
-String _$quoteViewModelHash() => r'62ecbcbf80ffbc4c18d06c2e6104825840b9dd56';
+String _$quoteViewModelHash() => r'5052fe1ed2ebc7fbc403595075069faca1030185';
 
 /// See also [QuoteViewModel].
 @ProviderFor(QuoteViewModel)

@@ -38,238 +38,237 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
       });
     });
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Notification Time',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 40),
-            const Text(
-              'Pick your daily spark',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(title: const Text('Notification Time')),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              const Text(
+                'Pick your daily spark',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Choose the moment you want QuoteVault to inspire you.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 16,
+              const SizedBox(height: 12),
+              Text(
+                'Choose the moment you want ThoughtVault to inspire you.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : AppColors.textSecondaryLight,
+                  fontSize: 16,
+                ),
               ),
-            ),
 
-            const Spacer(),
+              const SizedBox(height: 40),
 
-            // Custom Clock/Time Picker placeholder
-            // Building a full custom clock is complex, using standard TimePicker for functionality
-            // but wrapping it or styling it could be good.
-            // For now, let's display the time big and use standard picker on tap.
-            GestureDetector(
-              onTap: () async {
-                final TimeOfDay? picked = await showTimePicker(
-                  context: context,
-                  initialTime: _selectedTime,
-                  builder: (context, child) {
-                    return Theme(
-                      data: Theme.of(context).copyWith(
-                        colorScheme: const ColorScheme.dark(
-                          primary: AppColors.fabGradientStart,
-                          onPrimary: Colors.white,
-                          surface: AppColors.card,
-                          onSurface: Colors.white,
-                        ),
-                        textButtonTheme: TextButtonThemeData(
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.fabGradientStart,
+              // Custom Clock/Time Picker placeholder
+              GestureDetector(
+                onTap: () async {
+                  final TimeOfDay? picked = await showTimePicker(
+                    context: context,
+                    initialTime: _selectedTime,
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context).copyWith(
+                          colorScheme: isDark
+                              ? const ColorScheme.dark(
+                                  primary: AppColors.fabGradientStart,
+                                  onPrimary: Colors.white,
+                                  surface: AppColors.card,
+                                  onSurface: Colors.white,
+                                )
+                              : const ColorScheme.light(
+                                  primary: AppColors.accent,
+                                  onPrimary: Colors.white,
+                                  surface: Colors.white,
+                                  onSurface: AppColors.textPrimaryLight,
+                                ),
+                          textButtonTheme: TextButtonThemeData(
+                            style: TextButton.styleFrom(
+                              foregroundColor: isDark
+                                  ? AppColors.fabGradientStart
+                                  : AppColors.accent,
+                            ),
                           ),
+                        ),
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null && picked != _selectedTime) {
+                    setState(() {
+                      _selectedTime = picked;
+                    });
+                  }
+                },
+                child: Column(
+                  children: [
+                    // Clock Visual Placeholder
+                    Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark ? AppColors.card : Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                (isDark
+                                        ? AppColors.royalStart
+                                        : AppColors.accent)
+                                    .withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white10
+                              : Colors.black.withValues(alpha: 0.05),
+                          width: 1,
                         ),
                       ),
-                      child: child!,
-                    );
-                  },
-                );
-                if (picked != null && picked != _selectedTime) {
-                  setState(() {
-                    _selectedTime = picked;
-                  });
-                }
-              },
-              child: Column(
-                children: [
-                  // Clock Visual Placeholder (Static for now to match vibe)
-                  Container(
-                    width: 200,
-                    height: 200,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.background, // Inner dark
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.royalStart.withOpacity(0.1),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                      border: Border.all(color: Colors.white10, width: 1),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned(
+                            top: 20,
+                            child: Text(
+                              '12',
+                              style: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black26,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 20,
+                            child: Text(
+                              '6',
+                              style: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black26,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 20,
+                            child: Text(
+                              '9',
+                              style: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black26,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            right: 20,
+                            child: Text(
+                              '3',
+                              style: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black26,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white : AppColors.accent,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          Transform.rotate(
+                            angle: -0.5,
+                            child: Container(
+                              width: 4,
+                              height: 70,
+                              margin: const EdgeInsets.only(bottom: 50),
+                              color: AppColors.accent.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Clock face markers roughly
-                        Positioned(
-                          top: 20,
-                          child: Text(
-                            '12',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 20,
-                          child: Text(
-                            '6',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 20,
-                          child: Text(
-                            '9',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 20,
-                          child: Text(
-                            '3',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                            ),
-                          ),
-                        ),
 
-                        // Center dot
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                    const SizedBox(height: 40),
 
-                        // Hand (Static Visual)
-                        Transform.rotate(
-                          angle: -0.5, // Just visual
-                          child: Container(
-                            width: 4,
-                            height: 70,
-                            margin: const EdgeInsets.only(bottom: 50),
-                            color: AppColors.accent,
+                    Text(
+                      _selectedTime.format(context),
+                      style: const TextStyle(
+                        fontSize: 64,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.card
+                            : Colors.black.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildAmPmToggle(
+                            'AM',
+                            _selectedTime.period == DayPeriod.am,
                           ),
-                        ),
-                      ],
+                          _buildAmPmToggle(
+                            'PM',
+                            _selectedTime.period == DayPeriod.pm,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 60),
+
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    ref
+                        .read(notificationSettingsViewModelProvider.notifier)
+                        .setNotificationTime(_selectedTime);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Notification preference saved!'),
+                      ),
+                    );
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-
-                  const SizedBox(height: 40),
-
-                  Text(
-                    _selectedTime.format(context),
-                    style: const TextStyle(
+                  child: const Text(
+                    'Save Preference',
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 64,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
-                  const SizedBox(height: 16),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.card,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 4,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildAmPmToggle(
-                          'AM',
-                          _selectedTime.period == DayPeriod.am,
-                        ),
-                        _buildAmPmToggle(
-                          'PM',
-                          _selectedTime.period == DayPeriod.pm,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const Spacer(),
-
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {
-                  ref
-                      .read(notificationSettingsViewModelProvider.notifier)
-                      .setNotificationTime(_selectedTime);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Notification preference saved!'),
-                    ),
-                  );
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: const Text(
-                  'Save Preference',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 40),
-          ],
+              const SizedBox(height: 40),
+            ],
+          ),
         ),
       ),
     );

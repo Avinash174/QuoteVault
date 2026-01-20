@@ -9,6 +9,8 @@ class QuoteViewModel extends _$QuoteViewModel {
   int _page = 1;
   static const _limit = 10;
   bool _isLoadingMore = false;
+  String _selectedCategory = 'All Quotes';
+  String get selectedCategory => _selectedCategory;
 
   @override
   FutureOr<List<Quote>> build() {
@@ -18,7 +20,11 @@ class QuoteViewModel extends _$QuoteViewModel {
 
   Future<List<Quote>> _fetchQuotes({required int page}) {
     final repository = ref.read(quoteRepositoryProvider);
-    return repository.fetchQuotes(page: page, limit: _limit);
+    return repository.fetchQuotes(
+      page: page,
+      limit: _limit,
+      category: _selectedCategory,
+    );
   }
 
   Future<void> fetchMore() async {
@@ -36,8 +42,6 @@ class QuoteViewModel extends _$QuoteViewModel {
         state = AsyncData([...currentList, ...newQuotes]);
       }
     } catch (e) {
-      // Re-throw so the UI can handle it (e.g. show a SnackBar)
-      // We do not want to set state = AsyncError because that would replace the list with an error view
       rethrow;
     } finally {
       _isLoadingMore = false;
@@ -48,6 +52,12 @@ class QuoteViewModel extends _$QuoteViewModel {
     _page = 1;
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _fetchQuotes(page: 1));
+  }
+
+  Future<void> selectCategory(String category) async {
+    if (_selectedCategory == category) return;
+    _selectedCategory = category;
+    await refresh();
   }
 }
 

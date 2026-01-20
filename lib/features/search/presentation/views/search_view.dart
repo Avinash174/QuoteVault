@@ -157,7 +157,7 @@ class SearchView extends ConsumerWidget {
                         color: isAccent
                             ? Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.2)
+                              ).colorScheme.primary.withValues(alpha: 0.2)
                             : Theme.of(context).cardTheme.color,
                         borderRadius: BorderRadius.circular(25),
                         border: isAccent
@@ -235,7 +235,7 @@ class SearchView extends ConsumerWidget {
                               Icons.history,
                               color: Theme.of(
                                 context,
-                              ).iconTheme.color?.withOpacity(0.5),
+                              ).iconTheme.color?.withValues(alpha: 0.5),
                             ),
                             title: Text(
                               search,
@@ -251,7 +251,7 @@ class SearchView extends ConsumerWidget {
                                 Icons.close,
                                 color: Theme.of(
                                   context,
-                                ).iconTheme.color?.withOpacity(0.5),
+                                ).iconTheme.color?.withValues(alpha: 0.5),
                                 size: 18,
                               ),
                             ),

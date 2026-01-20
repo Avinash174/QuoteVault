@@ -1,158 +1,220 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter/foundation.dart';
+
 import '../models/quote_model.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://api.api-ninjas.com/v2/quotes';
+  static const String _zenQuotesUrl = 'https://zenquotes.io/api';
+  static const String _dummyJsonUrl = 'https://dummyjson.com/quotes';
 
-  Future<List<Quote>> getQuotes({String? category, int limit = 10}) async {
-    final apiKey = dotenv.env['API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('Configuration Error: API_KEY not found in .env');
+  // Cache for Quote of the Day
+  static Quote? _cachedQod;
+  static DateTime? _lastCacheTime;
+
+  // Cache for All Quotes (ZenQuotes)
+  static List<Quote>? _cachedQuotes;
+  static DateTime? _lastQuotesCacheTime;
+
+  Future<List<Quote>> getQuotes({
+    String? category,
+    int limit = 10,
+    int skip = 0,
+  }) async {
+    final bool isFiltered =
+        category != null && category.isNotEmpty && category != 'All Quotes';
+    final Uri uri;
+
+    if (!isFiltered) {
+      if (_cachedQuotes != null && _lastQuotesCacheTime != null) {
+        final difference = DateTime.now().difference(_lastQuotesCacheTime!);
+        if (difference.inSeconds < 5) {
+          developer.log('Returning cached quotes', name: 'ThoughtVault.API');
+          return _cachedQuotes!;
+        }
+      }
+      uri = Uri.parse('$_zenQuotesUrl/quotes');
+    } else {
+      uri = Uri.parse('$_dummyJsonUrl/tag/${category.toLowerCase()}');
     }
 
-    final queryParameters = {
-      'limit': limit.toString(),
-      if (category != null && category.isNotEmpty) 'categories': category,
-    };
-
-    final uri = Uri.parse(_baseUrl).replace(queryParameters: queryParameters);
-
-    debugPrint('API Request: GET $uri');
+    developer.log('API Request: GET $uri', name: 'ThoughtVault.API');
 
     try {
-      final response = await http.get(uri, headers: {'X-Api-Key': apiKey});
-
-      debugPrint(
-        'API Response: ${response.statusCode} - ${response.reasonPhrase}',
+      final response = await http.get(
+        uri,
+        headers: isFiltered
+            ? {}
+            : {
+                'User-Agent':
+                    'ThoughtVault/1.0 (Flutter App)', // Required for ZenQuotes
+              },
       );
-      // debugPrint('API Body: ${response.body}'); // Uncomment if full body logging needed
+
+      developer.log(
+        'API Response: ${response.statusCode} - ${response.reasonPhrase}',
+        name: 'ThoughtVault.API',
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        if (data.isEmpty) {
-          debugPrint('API Warning: No quotes found.');
+        final dynamic data = jsonDecode(response.body);
+
+        // Parsing logic depends on source
+        if (isFiltered) {
+          // DummyJSON format: { quotes: [...] }
+          final List<dynamic> quotes = data['quotes'];
+          if (quotes.isEmpty) return [];
+
+          return quotes.map((json) {
+            return Quote.fromJson({
+              'quote': json['quote'],
+              'author': json['author'],
+              'categories': [category],
+            });
+          }).toList();
+        } else {
+          // ZenQuotes format: [ { q: ..., a: ... } ]
+          if (data is List) {
+            final quotes = data.map((json) {
+              return Quote.fromJson({
+                'quote': json['q'],
+                'author': json['a'],
+                'categories': [],
+              });
+            }).toList();
+
+            _cachedQuotes = quotes;
+            _lastQuotesCacheTime = DateTime.now();
+            return quotes;
+          }
           return [];
         }
-        return data.map((json) => Quote.fromJson(json)).toList();
-      } else if (response.statusCode == 401 || response.statusCode == 403) {
-        debugPrint('API Error: Unauthorized access.');
-        throw Exception('Unauthorized: Please check your API Key.');
       } else if (response.statusCode == 429) {
-        debugPrint('API Error: Rate limit exceeded.');
-        throw Exception('Rate Limit Exceeded: Please try again later.');
-      } else {
-        debugPrint('API Error: Server returned ${response.statusCode}');
-        throw Exception(
-          'Server Error: ${response.statusCode} - ${response.reasonPhrase}',
+        developer.log(
+          'Rate limit hit (429), returning cache',
+          name: 'ThoughtVault.API',
         );
+        return _cachedQuotes ?? [];
+      } else {
+        developer.log(
+          'API Error: ${response.statusCode}',
+          name: 'ThoughtVault.API',
+        );
+        return _cachedQuotes ?? [];
       }
-    } on http.ClientException catch (e) {
-      debugPrint('API Network Error: $e');
-      throw Exception('Network Error: Please check your internet connection.');
     } catch (e) {
-      debugPrint('API Unexpected Error: $e');
-      throw Exception('Unexpected Error: $e');
+      developer.log('API Unexpected Error', name: 'ThoughtVault.API', error: e);
+      return [];
+    }
+  }
+
+  Future<List<Quote>> searchQuotes(String query) async {
+    if (query.trim().isEmpty) return [];
+
+    // DummyJSON search endpoint
+    final uri = Uri.parse(
+      '$_dummyJsonUrl/search',
+    ).replace(queryParameters: {'q': query.trim()});
+
+    developer.log('API Request: GET $uri', name: 'ThoughtVault.API');
+
+    try {
+      final response = await http.get(uri);
+
+      developer.log(
+        'API Response: ${response.statusCode} - ${response.reasonPhrase}',
+        name: 'ThoughtVault.API',
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        final List<dynamic> quotes = data['quotes'];
+
+        return quotes.map((json) {
+          return Quote.fromJson({
+            'quote': json['quote'],
+            'author': json['author'],
+            'categories':
+                [], // Search results don't explicitly return categories in this endpoint structure usually
+          });
+        }).toList();
+      } else {
+        developer.log(
+          'API Error: ${response.statusCode}',
+          name: 'ThoughtVault.API',
+        );
+        return [];
+      }
+    } catch (e) {
+      developer.log('API Unexpected Error', name: 'ThoughtVault.API', error: e);
+      return [];
     }
   }
 
   Future<Quote> getQuoteOfTheDay() async {
-    final apiKey = dotenv.env['API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('Configuration Error: API_KEY not found in .env');
+    // Check cache first (valid for 1 hour)
+    if (_cachedQod != null && _lastCacheTime != null) {
+      final difference = DateTime.now().difference(_lastCacheTime!);
+      if (difference.inHours < 1) {
+        developer.log('Returning cached QOD', name: 'ThoughtVault.API');
+        return _cachedQod!;
+      }
     }
 
-    final uri = Uri.parse('https://api.api-ninjas.com/v2/quoteoftheday');
+    // ZenQuotes for Quote of the Day
+    final uri = Uri.parse('$_zenQuotesUrl/today');
 
-    debugPrint('API Request: GET $uri');
+    developer.log('API Request: GET $uri', name: 'ThoughtVault.API');
 
     try {
-      final response = await http.get(uri, headers: {'X-Api-Key': apiKey});
-
-      debugPrint(
-        'API Response: ${response.statusCode} - ${response.reasonPhrase}',
+      final response = await http.get(
+        uri,
+        headers: {'User-Agent': 'ThoughtVault/1.0 (Flutter App)'},
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = jsonDecode(response.body);
-        if (data.isEmpty) {
-          debugPrint('API Warning: No QOD found.');
-          throw Exception('No Quote of the Day available.');
-        }
-        return Quote.fromJson(data.first);
-      } else if (response.statusCode == 401 || response.statusCode == 403) {
-        debugPrint('API Error: Unauthorized.');
-        throw Exception('Unauthorized: Please check your API Key.');
+        if (data.isEmpty) throw Exception('No QOD available');
+
+        final json = data.first;
+        _cachedQod = Quote.fromJson({
+          'quote': json['q'],
+          'author': json['a'],
+          'categories': [],
+        });
+        _lastCacheTime = DateTime.now();
+        return _cachedQod!;
       } else if (response.statusCode == 429) {
-        debugPrint('API Error: Rate limit exceeded.');
-        throw Exception('Rate Limit Exceeded: Please try again later.');
-      } else {
-        debugPrint('API Error: Server returned ${response.statusCode}');
-        throw Exception(
-          'Server Error: ${response.statusCode} - ${response.reasonPhrase}',
+        developer.log(
+          'Rate limit hit (429), returning fallback/cache',
+          name: 'ThoughtVault.API',
         );
+        if (_cachedQod != null) return _cachedQod!;
+        // Hardcoded fallback if no cache
+        return const Quote(
+          text:
+              "The only limit to our realization of tomorrow is our doubts of today.",
+          author: "Franklin D. Roosevelt",
+          categories: ["Inspiration"],
+        );
+      } else {
+        throw Exception('Server Error: ${response.statusCode}');
       }
-    } on http.ClientException catch (e) {
-      debugPrint('API Network Error: $e');
-      throw Exception('Network Error: Please check your internet connection.');
     } catch (e) {
-      debugPrint('API Unexpected Error: $e');
-      throw Exception('Unexpected Error: $e');
+      developer.log('API Unexpected Error: $e', name: 'ThoughtVault.API');
+      if (_cachedQod != null) return _cachedQod!;
+      return const Quote(
+        text:
+            "The only limit to our realization of tomorrow is our doubts of today.",
+        author: "Franklin D. Roosevelt",
+        categories: ["Inspiration"],
+      );
     }
   }
 
   Future<List<String>> getAuthors({int limit = 20, int offset = 0}) async {
-    final apiKey = dotenv.env['API_KEY'];
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('Configuration Error: API_KEY not found in .env');
-    }
-
-    final queryParameters = {
-      'limit': limit.toString(),
-      'offset': offset.toString(),
-    };
-
-    final uri = Uri.parse(
-      'https://api.api-ninjas.com/v2/quoteauthors',
-    ).replace(queryParameters: queryParameters);
-
-    debugPrint('API Request: GET $uri');
-
-    try {
-      final response = await http.get(uri, headers: {'X-Api-Key': apiKey});
-
-      debugPrint(
-        'API Response: ${response.statusCode} - ${response.reasonPhrase}',
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        debugPrint('API Success: Fetched ${data.length} authors.');
-        if (data is List) {
-          return data.map((e) => e.toString()).toList();
-        } else {
-          return [];
-        }
-      } else if (response.statusCode == 401 || response.statusCode == 403) {
-        debugPrint('API Error: Unauthorized.');
-        throw Exception('Unauthorized: Please check your API Key.');
-      } else if (response.statusCode == 429) {
-        debugPrint('API Error: Rate limit exceeded.');
-        throw Exception('Rate Limit Exceeded: Please try again later.');
-      } else {
-        debugPrint('API Error: Server returned ${response.statusCode}');
-        throw Exception(
-          'Server Error: ${response.statusCode} - ${response.reasonPhrase}',
-        );
-      }
-    } on http.ClientException catch (e) {
-      debugPrint('API Network Error: $e');
-      throw Exception('Network Error: Please check your internet connection.');
-    } catch (e) {
-      debugPrint('API Unexpected Error: $e');
-      throw Exception('Unexpected Error: $e');
-    }
+    // ZenQuotes does not support author listing in the free tier
+    // Returning empty list to avoid errors/expenses
+    return [];
   }
 }

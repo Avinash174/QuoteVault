@@ -34,9 +34,9 @@ class AppColors {
   static const Color success = Color(0xFF00C851);
 
   // Light Theme Colors
-  static const Color backgroundLight = Color(0xFFF5F5F7);
+  static const Color backgroundLight = Color(0xFFF8F9FA);
   static const Color surfaceLight = Colors.white;
   static const Color cardLight = Colors.white;
-  static const Color textPrimaryLight = Color(0xFF1C1C1E);
-  static const Color textSecondaryLight = Color(0xFF8E8E93);
+  static const Color textPrimaryLight = Color(0xFF212529);
+  static const Color textSecondaryLight = Color(0xFF6C757D);
 }

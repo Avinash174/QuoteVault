@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/services/auth_provider.dart';
 import '../../../../data/models/quote_model.dart';
 import '../../../../core/services/firestore_service.dart';
 
@@ -15,36 +16,22 @@ class LibraryViewModel extends _$LibraryViewModel {
 
   @override
   List<Quote> build() {
-    // When the provider is initialized, start listening to auth changes
-    // to automatically switch the favorites stream.
-    _initAuthListener();
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
 
-    // IMPORTANT: We need to properly dispose the subscription when the provider is disposed.
-    // However, with @riverpod generated notifiers, we usually rely on ref.onDispose.
-    ref.onDispose(() {
-      _subscription?.cancel();
-    });
+    _subscription?.cancel();
+    if (user != null) {
+      _subscription = _firestoreService.getFavorites(user.uid).listen((
+        favorites,
+      ) {
+        state = favorites;
+      });
+    } else {
+      state = [];
+    }
 
+    ref.onDispose(() => _subscription?.cancel());
     return [];
-  }
-
-  void _initAuthListener() {
-    // Listen to auth state changes
-    _auth.authStateChanges().listen((User? user) {
-      _subscription?.cancel(); // Cancel old subscription
-
-      if (user != null) {
-        // If logged in, listen to Firestore favorites
-        _subscription = _firestoreService.getFavorites(user.uid).listen((
-          favorites,
-        ) {
-          state = favorites;
-        });
-      } else {
-        // If logged out, clear favorites (or kept local if we wanted local-only mode, but let's clear for security)
-        state = [];
-      }
-    });
   }
 
   Future<void> toggleFavorite(Quote quote) async {

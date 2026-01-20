@@ -6,6 +6,8 @@ class QuoteCardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       height: 300,
@@ -14,8 +16,10 @@ class QuoteCardShimmer extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Shimmer.fromColors(
-        baseColor: Colors.grey[800]!,
-        highlightColor: Colors.grey[700]!,
+        baseColor: isDark ? Colors.grey[850]! : Colors.grey[300]!,
+        highlightColor: isDark ? Colors.grey[800]! : Colors.grey[100]!,
+        period: const Duration(milliseconds: 2500),
+
         child: Stack(
           children: [
             // Mimic Content Padding

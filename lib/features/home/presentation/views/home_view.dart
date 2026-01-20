@@ -4,9 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/quote_card_shimmer.dart';
 import '../providers/quote_viewmodel.dart';
-import '../providers/authors_viewmodel.dart';
-import '../../../../data/models/quote_model.dart';
 import '../../../../core/widgets/error_view.dart';
+import 'search_screen.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -14,18 +13,21 @@ class HomeView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quotesAsync = ref.watch(quoteViewModelProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: NotificationListener<ScrollNotification>(
         onNotification: (scrollInfo) {
           if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent) {
             ref.read(quoteViewModelProvider.notifier).fetchMore().catchError((
               e,
             ) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to load more quotes: $e')),
-              );
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Failed to load more quotes: $e')),
+                );
+              }
             });
           }
           return false;
@@ -33,44 +35,46 @@ class HomeView extends ConsumerWidget {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              backgroundColor: AppColors.background,
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              surfaceTintColor: Colors.transparent,
               elevation: 0,
               floating: true,
               snap: true,
               pinned: false,
               leading: null,
               automaticallyImplyLeading: false,
-              title: const Text(
-                'Motivation',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/icon/app_logo.png',
+                    height: 28,
+                    width: 28,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'ThoughtVault',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  ),
+                ],
               ),
               centerTitle: true,
               actions: [
-                Consumer(
-                  builder: (context, ref, _) {
-                    return IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: () async {
-                        try {
-                          final authors = await ref.read(
-                            authorsViewModelProvider.future,
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Fetched ${authors.length} authors. Check console.',
-                              ),
-                            ),
-                          );
-                          print('Authors: $authors');
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Failed to fetch authors: $e'),
-                            ),
-                          );
-                        }
-                      },
+                IconButton(
+                  icon: Icon(
+                    Icons.search,
+                    color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SearchScreen(),
+                      ),
                     );
                   },
                 ),
@@ -103,14 +107,16 @@ class HomeView extends ConsumerWidget {
                           error: (error, _) => Text(
                             'Unable to load Quote of the Day',
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.7),
+                              color: isDark
+                                  ? Colors.white70
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                         );
                       },
                     ),
                     const SizedBox(height: 16),
-                    const Divider(color: Colors.white12),
+                    Divider(color: isDark ? Colors.white12 : Colors.black12),
                   ],
                 ),
               ),
@@ -122,16 +128,54 @@ class HomeView extends ConsumerWidget {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 8,
+                  vertical: 12,
                 ),
-                child: Row(
-                  children: [
-                    _buildFilterChip('All Quotes', selected: true),
-                    const SizedBox(width: 12),
-                    _buildFilterChip('Success'),
-                    const SizedBox(width: 12),
-                    _buildFilterChip('Wisdom'),
-                  ],
+                child: Consumer(
+                  builder: (context, ref, child) {
+                    ref.watch(quoteViewModelProvider);
+                    final selectedCategory = ref
+                        .read(quoteViewModelProvider.notifier)
+                        .selectedCategory;
+
+                    return Row(
+                      children: [
+                        _buildFilterChip(
+                          ref,
+                          context,
+                          'All Quotes',
+                          selectedCategory,
+                        ),
+                        const SizedBox(width: 12),
+                        _buildFilterChip(
+                          ref,
+                          context,
+                          'Love',
+                          selectedCategory,
+                        ),
+                        const SizedBox(width: 12),
+                        _buildFilterChip(
+                          ref,
+                          context,
+                          'Life',
+                          selectedCategory,
+                        ),
+                        const SizedBox(width: 12),
+                        _buildFilterChip(
+                          ref,
+                          context,
+                          'Beauty',
+                          selectedCategory,
+                        ),
+                        const SizedBox(width: 12),
+                        _buildFilterChip(
+                          ref,
+                          context,
+                          'History',
+                          selectedCategory,
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -157,7 +201,7 @@ class HomeView extends ConsumerWidget {
                     Text(
                       'LIVE FEED',
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: isDark ? Colors.grey[600] : Colors.grey[400],
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 1.5,
@@ -190,7 +234,6 @@ class HomeView extends ConsumerWidget {
               ),
             ),
 
-            // Bottom Padding specifically for Sliver
             const SliverPadding(padding: EdgeInsets.only(bottom: 80)),
           ],
         ),
@@ -198,36 +241,62 @@ class HomeView extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterChip(String label, {bool selected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: selected ? Colors.white : const Color(0xFF252525),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        // Added Row for dropdown arrow if needed, keeping simple for now
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: selected ? Colors.black : Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
+  Widget _buildFilterChip(
+    WidgetRef ref,
+    BuildContext context,
+    String label,
+    String currentCategory,
+  ) {
+    final selected = currentCategory == label;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () {
+        ref.read(quoteViewModelProvider.notifier).selectCategory(label);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? (isDark ? Colors.white : AppColors.accent)
+              : (isDark
+                    ? const Color(0xFF252525)
+                    : Colors.black.withValues(alpha: 0.05)),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: (isDark ? Colors.white : AppColors.accent)
+                        .withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: selected
+                    ? (isDark ? Colors.black : Colors.white)
+                    : (isDark ? Colors.white70 : AppColors.textPrimaryLight),
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
             ),
-          ),
-          if (selected) ...[
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.keyboard_arrow_down,
-              size: 16,
-              color: Colors.black,
-            ),
-          ] else ...[
-            const SizedBox(width: 4),
-            const Icon(Icons.keyboard_arrow_down, size: 16, color: Colors.grey),
+            if (selected) ...[
+              const SizedBox(width: 4),
+              Icon(
+                Icons.check,
+                size: 16,
+                color: isDark ? Colors.black : Colors.white,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
