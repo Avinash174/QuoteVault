@@ -57,7 +57,10 @@ class AddToCollectionSheet extends ConsumerWidget {
                   ),
                 );
               }
-              return Flexible(
+              return Container(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.5,
+                ),
                 child: ListView.builder(
                   shrinkWrap: true,
                   itemCount: data.length,
@@ -156,12 +159,32 @@ class AddToCollectionSheet extends ConsumerWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                ref
-                    .read(collectionViewModelProvider.notifier)
-                    .createCollection(controller.text.trim());
-                Navigator.pop(context);
+            onPressed: () async {
+              final name = controller.text.trim();
+              if (name.isNotEmpty) {
+                try {
+                  await ref
+                      .read(collectionViewModelProvider.notifier)
+                      .createCollection(name);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Collection "$name" created'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to create collection: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
               }
             },
             child: const Text('Create'),

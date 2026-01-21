@@ -183,7 +183,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ),
       onPressed: () {
         _searchController.text = label;
-        _onSearchChanged(label);
+        ref.read(searchViewModelProvider.notifier).searchByCategory(label);
       },
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       side: BorderSide.none,

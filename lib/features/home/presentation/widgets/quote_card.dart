@@ -78,6 +78,7 @@ class QuoteCard extends ConsumerWidget {
                       showModalBottomSheet(
                         context: context,
                         backgroundColor: Colors.transparent,
+                        isScrollControlled: true,
                         builder: (context) =>
                             AddToCollectionSheet(quote: quote),
                       );

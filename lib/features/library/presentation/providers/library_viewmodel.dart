@@ -7,7 +7,7 @@ import '../../../../core/services/firestore_service.dart';
 
 part 'library_viewmodel.g.dart';
 
-@riverpod
+@Riverpod(keepAlive: true)
 class LibraryViewModel extends _$LibraryViewModel {
   final _firestoreService = FirestoreService();
   final _auth = FirebaseAuth.instance;

@@ -22,4 +22,11 @@ class SearchViewModel extends _$SearchViewModel {
       () => ref.read(quoteRepositoryProvider).searchQuotes(query),
     );
   }
+
+  Future<void> searchByCategory(String category) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(
+      () => ref.read(quoteRepositoryProvider).fetchQuotes(category: category),
+    );
+  }
 }

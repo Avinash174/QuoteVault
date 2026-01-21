@@ -7,6 +7,7 @@ import 'dart:io';
 import 'dart:developer' as developer;
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -184,8 +185,44 @@ class _EditProfileViewState extends State<EditProfileView> {
 
   Future<void> _pickImage() async {
     try {
+      // Show source selection dialog
+      final source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        builder: (context) => Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt),
+                title: const Text('Take a Photo'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library),
+                title: const Text('Choose from Gallery'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (source == null) return;
+
+      if (source == ImageSource.camera) {
+        final status = await Permission.camera.request();
+        if (status.isPermanentlyDenied) {
+          if (mounted) {
+            _showSettingsDialog();
+          }
+          return;
+        }
+        if (!status.isGranted) return;
+      }
+
       final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         imageQuality: 70, // Optimize size
       );
 
@@ -204,6 +241,31 @@ class _EditProfileViewState extends State<EditProfileView> {
         SnackbarUtils.showError(context, 'Error', 'Error picking image: $e');
       }
     }
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Camera Permission Required'),
+        content: const Text(
+          'This app needs camera access to take profile photos. Please enable it in settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            child: const Text('Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<String?> _uploadImage(File image) async {
