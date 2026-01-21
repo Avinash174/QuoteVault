@@ -21,23 +21,23 @@ class CollectionGridItem extends StatelessWidget {
   });
 
   // ... (keep helper methods same)
+  // A palette of vibrant colors similar to the image
+  static const List<Color> _collectionColors = [
+    Color(0xFF5B4DFF), // Blue/Purple like "Monday Motivation"
+    Color(0xFF00A86B), // Green like "Book Project"
+    Color(0xFF4A4A4A), // Dark Grey like "Stoicism" or just Dark
+    Color(0xFFE88A1A), // Orange like "Wisdom"
+    Color(0xFF9C42D3), // Purple like "Morning Ritual"
+    Color(0xFFD33644), // Red like "Love & Kindness"
+    Color(0xFF00BCD4), // Cyan
+    Color(0xFFFF4081), // Pink
+  ];
+
   // Deterministic color generation based on collection name/id
   Color _getCollectionColor(String id) {
-    // A palette of vibrant colors similar to the image
-    final colors = [
-      const Color(0xFF5B4DFF), // Blue/Purple like "Monday Motivation"
-      const Color(0xFF00A86B), // Green like "Book Project"
-      const Color(0xFF4A4A4A), // Dark Grey like "Stoicism" or just Dark
-      const Color(0xFFE88A1A), // Orange like "Wisdom"
-      const Color(0xFF9C42D3), // Purple like "Morning Ritual"
-      const Color(0xFFD33644), // Red like "Love & Kindness"
-      const Color(0xFF00BCD4), // Cyan
-      const Color(0xFFFF4081), // Pink
-    ];
-
     // Use hash to pick a stable color for the same ID
-    final index = id.hashCode.abs() % colors.length;
-    return colors[index];
+    final index = id.hashCode.abs() % _collectionColors.length;
+    return _collectionColors[index];
   }
 
   // Helper to pick an icon based on name (simple keyword matching)

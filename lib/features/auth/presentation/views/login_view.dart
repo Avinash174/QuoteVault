@@ -139,33 +139,33 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> _handleForgotPassword() async {
     final emailController = TextEditingController();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+        backgroundColor: Theme.of(context).cardTheme.color,
         title: Text(
           'Reset Password',
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
         content: TextField(
           controller: emailController,
-          style: TextStyle(color: isDark ? Colors.white : Colors.black),
+          style: Theme.of(context).textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: 'Email',
-            hintStyle: const TextStyle(color: Colors.grey),
+            hintStyle: TextStyle(color: Theme.of(context).hintColor),
             enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(
-                color: isDark ? Colors.white24 : Colors.black12,
-              ),
+              borderSide: BorderSide(color: Theme.of(context).dividerColor),
             ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Theme.of(context).hintColor),
+            ),
           ),
           TextButton(
             onPressed: () async {
@@ -217,7 +217,7 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -226,12 +226,12 @@ class _LoginViewState extends State<LoginView> {
               const SizedBox(height: 24),
               Image.asset('assets/icon/app_logo.png', height: 80, width: 80),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'ThoughtVault',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Theme.of(context).textTheme.headlineMedium?.color,
                 ),
               ),
               const SizedBox(height: 32),
@@ -294,7 +294,7 @@ class _LoginViewState extends State<LoginView> {
 
               const SizedBox(height: 32),
 
-              const Divider(color: Colors.white10),
+              Divider(color: Theme.of(context).dividerColor),
               const SizedBox(height: 24),
 
               Column(
@@ -306,8 +306,11 @@ class _LoginViewState extends State<LoginView> {
                       label: 'Google',
                       onTap: () =>
                           _handleSocialAuth(_authService.signInWithGoogle),
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
+                      backgroundColor:
+                          Theme.of(context).cardTheme.color ?? Colors.white,
+                      foregroundColor:
+                          Theme.of(context).textTheme.bodyLarge?.color ??
+                          Colors.black,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -331,7 +334,7 @@ class _LoginViewState extends State<LoginView> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -350,7 +353,9 @@ class _LoginViewState extends State<LoginView> {
                   child: Text(
                     'Sign In',
                     style: TextStyle(
-                      color: _isSignIn ? Colors.white : Colors.grey,
+                      color: _isSignIn
+                          ? Colors.white
+                          : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -372,7 +377,9 @@ class _LoginViewState extends State<LoginView> {
                   child: Text(
                     'Create',
                     style: TextStyle(
-                      color: !_isSignIn ? Colors.white : Colors.grey,
+                      color: !_isSignIn
+                          ? Colors.white
+                          : Theme.of(context).textTheme.bodyMedium?.color,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -388,7 +395,10 @@ class _LoginViewState extends State<LoginView> {
   Widget _buildLabel(String text) {
     return Align(
       alignment: Alignment.centerLeft,
-      child: Text(text, style: const TextStyle(color: Colors.white)),
+      child: Text(
+        text,
+        style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+      ),
     );
   }
 
@@ -400,7 +410,7 @@ class _LoginViewState extends State<LoginView> {
     return TextField(
       controller: controller,
       obscureText: isPassword && _obscurePassword,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         hintText: hint,
         suffixIcon: isPassword

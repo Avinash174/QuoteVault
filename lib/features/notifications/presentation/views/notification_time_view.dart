@@ -118,7 +118,7 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                           BoxShadow(
                             color: Theme.of(
                               context,
-                            ).colorScheme.primary.withOpacity(0.1),
+                            ).colorScheme.primary.withValues(alpha: 0.1),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
@@ -126,7 +126,7 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).dividerColor.withOpacity(0.1),
+                          ).dividerColor.withValues(alpha: 0.1),
                           width: 1,
                         ),
                       ),
@@ -189,7 +189,7 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                               margin: const EdgeInsets.only(bottom: 50),
                               color: Theme.of(
                                 context,
-                              ).colorScheme.primary.withOpacity(0.8),
+                              ).colorScheme.primary.withValues(alpha: 0.8),
                             ),
                           ),
                         ],

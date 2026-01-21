@@ -19,6 +19,7 @@ class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
 
   Future<void> init() async {
+    await requestPermissions();
     tz_data.initializeTimeZones();
 
     // 1. Initialize Local Notifications
@@ -44,6 +45,21 @@ class NotificationService {
         // Handle notification tap
       },
     );
+
+    // Create the channel on the device (if we haven't already)
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel', // id
+      'High Importance Notifications', // title
+      description:
+          'This channel is used for important notifications.', // description
+      importance: Importance.max,
+    );
+
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(channel);
 
     // 2. Initialize Firebase Messaging
     await _initFCM();
