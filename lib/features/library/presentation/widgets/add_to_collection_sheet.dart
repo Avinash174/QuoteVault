@@ -98,18 +98,39 @@ class AddToCollectionSheet extends ConsumerWidget {
                                 Icons.add_circle_outline,
                                 color: Colors.grey,
                               ),
-                              onPressed: () {
-                                ref
-                                    .read(collectionViewModelProvider.notifier)
-                                    .addQuoteToCollection(collection.id, quote);
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Added to ${collection.name}',
-                                    ),
-                                  ),
-                                );
+                              onPressed: () async {
+                                try {
+                                  await ref
+                                      .read(
+                                        collectionViewModelProvider.notifier,
+                                      )
+                                      .addQuoteToCollection(
+                                        collection.id,
+                                        quote,
+                                      );
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Added to ${collection.name}',
+                                        ),
+                                        backgroundColor: AppColors.success,
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Failed to add to collection: $e',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
                               },
                             ),
                     );

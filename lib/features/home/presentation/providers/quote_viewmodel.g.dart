@@ -23,7 +23,23 @@ final quoteOfTheDayProvider = AutoDisposeFutureProvider<Quote>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef QuoteOfTheDayRef = AutoDisposeFutureProviderRef<Quote>;
-String _$quoteViewModelHash() => r'5052fe1ed2ebc7fbc403595075069faca1030185';
+String _$selectedCategoryHash() => r'c72c879ce0df56f5c8a0aa3299ac3f667d226ddd';
+
+/// See also [SelectedCategory].
+@ProviderFor(SelectedCategory)
+final selectedCategoryProvider =
+    AutoDisposeNotifierProvider<SelectedCategory, String>.internal(
+      SelectedCategory.new,
+      name: r'selectedCategoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$selectedCategoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$SelectedCategory = AutoDisposeNotifier<String>;
+String _$quoteViewModelHash() => r'837291c5569334faf559b1e7678db581afaf933d';
 
 /// See also [QuoteViewModel].
 @ProviderFor(QuoteViewModel)

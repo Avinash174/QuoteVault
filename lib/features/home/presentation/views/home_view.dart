@@ -132,10 +132,9 @@ class HomeView extends ConsumerWidget {
                 ),
                 child: Consumer(
                   builder: (context, ref, child) {
-                    ref.watch(quoteViewModelProvider);
-                    final selectedCategory = ref
-                        .read(quoteViewModelProvider.notifier)
-                        .selectedCategory;
+                    final selectedCategory = ref.watch(
+                      selectedCategoryProvider,
+                    );
 
                     return Row(
                       children: [
@@ -252,7 +251,7 @@ class HomeView extends ConsumerWidget {
 
     return GestureDetector(
       onTap: () {
-        ref.read(quoteViewModelProvider.notifier).selectCategory(label);
+        ref.read(selectedCategoryProvider.notifier).setCategory(label);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

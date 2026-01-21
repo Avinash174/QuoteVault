@@ -5,25 +5,38 @@ import '../../../../data/repositories/quote_repository.dart';
 part 'quote_viewmodel.g.dart';
 
 @riverpod
+class SelectedCategory extends _$SelectedCategory {
+  @override
+  String build() => 'All Quotes';
+
+  void setCategory(String category) {
+    state = category;
+  }
+}
+
+@riverpod
 class QuoteViewModel extends _$QuoteViewModel {
   int _page = 1;
   static const _limit = 10;
   bool _isLoadingMore = false;
-  String _selectedCategory = 'All Quotes';
-  String get selectedCategory => _selectedCategory;
 
   @override
-  FutureOr<List<Quote>> build() {
+  FutureOr<List<Quote>> build() async {
     _page = 1;
-    return _fetchQuotes(page: 1);
+    // Watch the category provider to auto-refresh when it changes
+    final category = ref.watch(selectedCategoryProvider);
+    return _fetchQuotes(page: 1, category: category);
   }
 
-  Future<List<Quote>> _fetchQuotes({required int page}) {
+  Future<List<Quote>> _fetchQuotes({
+    required int page,
+    required String category,
+  }) {
     final repository = ref.read(quoteRepositoryProvider);
     return repository.fetchQuotes(
       page: page,
       limit: _limit,
-      category: _selectedCategory,
+      category: category,
     );
   }
 
@@ -35,7 +48,8 @@ class QuoteViewModel extends _$QuoteViewModel {
 
     _isLoadingMore = true;
     try {
-      final newQuotes = await _fetchQuotes(page: _page + 1);
+      final category = ref.read(selectedCategoryProvider);
+      final newQuotes = await _fetchQuotes(page: _page + 1, category: category);
       if (newQuotes.isNotEmpty) {
         _page++;
         // Maintain the current state but append new items
@@ -51,13 +65,8 @@ class QuoteViewModel extends _$QuoteViewModel {
   Future<void> refresh() async {
     _page = 1;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _fetchQuotes(page: 1));
-  }
-
-  Future<void> selectCategory(String category) async {
-    if (_selectedCategory == category) return;
-    _selectedCategory = category;
-    await refresh();
+    // No need to manually fetch, forcing a rebuild will re-trigger build()
+    ref.invalidateSelf();
   }
 }
 
