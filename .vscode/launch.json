@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "name": "quotevault",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "quotevault (profile)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "quotevault (release)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
