@@ -10,6 +10,7 @@ import '../../../../data/models/user_stats.dart';
 import '../../../library/presentation/providers/collection_viewmodel.dart';
 import '../../../library/presentation/providers/library_viewmodel.dart';
 import '../providers/stats_provider.dart';
+import '../../../home/presentation/providers/bottom_nav_provider.dart';
 import 'edit_profile_view.dart';
 import 'edit_goal_view.dart';
 
@@ -111,7 +112,15 @@ class ProfileView extends ConsumerWidget {
             const SizedBox(height: 30),
             _buildDailyGoalCard(context, stats),
             const SizedBox(height: 30),
-            _buildSectionHeader(context, 'My Collections', showSeeAll: true),
+            _buildSectionHeader(
+              context,
+              'My Collections',
+              showSeeAll: true,
+              onSeeAll: () {
+                // Switch to Library Tab (Index 2)
+                ref.read(bottomNavNotifierProvider.notifier).setIndex(2);
+              },
+            ),
             const SizedBox(height: 16),
             if (collections.isLoading)
               const Center(child: CircularProgressIndicator())
@@ -648,6 +657,7 @@ class ProfileView extends ConsumerWidget {
     BuildContext context,
     String title, {
     bool showSeeAll = false,
+    VoidCallback? onSeeAll,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -663,12 +673,15 @@ class ProfileView extends ConsumerWidget {
           ),
         ),
         if (showSeeAll)
-          const Text(
-            'See All >',
-            style: TextStyle(
-              color: AppColors.accent,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+          GestureDetector(
+            onTap: onSeeAll,
+            child: const Text(
+              'See All >',
+              style: TextStyle(
+                color: AppColors.accent,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
       ],

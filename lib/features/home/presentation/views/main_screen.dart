@@ -11,6 +11,8 @@ import '../../../../features/library/presentation/views/library_view.dart';
 import 'create_quote_view.dart';
 import 'search_screen.dart';
 
+import '../providers/bottom_nav_provider.dart';
+
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
 
@@ -19,8 +21,6 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  int _currentIndex = 0;
-
   @override
   void initState() {
     super.initState();
@@ -44,6 +44,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentIndex = ref.watch(bottomNavNotifierProvider);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
@@ -52,7 +53,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         body: Stack(
           children: [
             // Main Content
-            IndexedStack(index: _currentIndex, children: _screens),
+            IndexedStack(index: currentIndex, children: _screens),
 
             // Bottom Navigation
             Positioned(
@@ -100,6 +101,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                               Icons.explore_outlined,
                               Icons.explore,
                               'EXPLORE',
+                              currentIndex,
                             ),
                           ),
                           Expanded(
@@ -108,6 +110,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                               Icons.search,
                               Icons.search,
                               'SEARCH',
+                              currentIndex,
                             ),
                           ),
                           const SizedBox(width: 64), // Space for FAB
@@ -117,6 +120,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                               Icons.collections_bookmark_outlined,
                               Icons.collections_bookmark,
                               'LIBRARY',
+                              currentIndex,
                             ),
                           ),
                           Expanded(
@@ -125,6 +129,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                               Icons.person_outline,
                               Icons.person,
                               'PROFILE',
+                              currentIndex,
                             ),
                           ),
                         ],
@@ -200,10 +205,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     IconData icon,
     IconData activeIcon,
     String label,
+    int currentIndex,
   ) {
-    final isSelected = _currentIndex == index;
+    final isSelected = currentIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => ref.read(bottomNavNotifierProvider.notifier).setIndex(index),
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,

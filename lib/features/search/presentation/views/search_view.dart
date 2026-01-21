@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../providers/search_viewmodel.dart';
+import '../../../../core/widgets/fade_slide_transition.dart';
+import '../../../home/presentation/views/quote_detail_view.dart';
+import '../../../../data/models/quote_model.dart';
+import '../../../../data/models/quote_collection.dart';
 
 class SearchView extends ConsumerWidget {
   const SearchView({super.key});
@@ -21,192 +25,224 @@ class SearchView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // Search Bar
-                  TextField(
-                    controller: searchController,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                    decoration: InputDecoration(
-                      hintText: 'Search quotes, authors...',
-                      hintStyle: TextStyle(color: Theme.of(context).hintColor),
-                      prefixIcon: Icon(
-                        Icons.search,
-                        color: Theme.of(context).iconTheme.color,
-                      ),
-                      filled: true,
-                      fillColor: Theme.of(context).cardTheme.color,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 0,
-                        horizontal: 20,
-                      ),
-                      suffix: searchQuery.isNotEmpty
-                          ? GestureDetector(
-                              onTap: () {
-                                ref.read(searchQueryProvider.notifier).state =
-                                    '';
-                                searchController.clear();
-                              },
-                              child: Icon(
-                                Icons.close,
-                                color: Theme.of(context).hintColor,
-                              ),
-                            )
-                          : null,
-                    ),
-                    onChanged: (value) {
-                      ref.read(searchQueryProvider.notifier).state = value;
-                    },
-                    onSubmitted: (value) {
-                      if (value.isNotEmpty) {
-                        ref
-                            .read(recentSearchesProvider.notifier)
-                            .addSearch(value);
-                      }
-                    },
-                  ),
-
-                  // Filters
-                  if (searchQuery.isNotEmpty) ...[
-                    const SizedBox(height: 16),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: SearchFilter.values.map((filter) {
-                          final isSelected = currentFilter == filter;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: FilterChip(
-                              label: Text(
-                                filter.name.toUpperCase(),
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Colors.white
-                                      : Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium?.color,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    // Search Bar
+                    TextField(
+                      controller: searchController,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      decoration: InputDecoration(
+                        hintText: 'Search quotes, authors...',
+                        hintStyle: TextStyle(
+                          color: Theme.of(context).hintColor,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Theme.of(context).iconTheme.color,
+                        ),
+                        filled: true,
+                        fillColor: Theme.of(context).cardTheme.color,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(30),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 0,
+                          horizontal: 20,
+                        ),
+                        suffix: searchQuery.isNotEmpty
+                            ? GestureDetector(
+                                onTap: () {
+                                  ref.read(searchQueryProvider.notifier).state =
+                                      '';
+                                  searchController.clear();
+                                },
+                                child: Icon(
+                                  Icons.close,
+                                  color: Theme.of(context).hintColor,
                                 ),
-                              ),
-                              selected: isSelected,
-                              onSelected: (selected) {
-                                if (selected) {
-                                  ref
-                                          .read(searchFilterProvider.notifier)
-                                          .state =
-                                      filter;
-                                }
-                              },
-                              backgroundColor: Theme.of(
-                                context,
-                              ).cardTheme.color,
-                              selectedColor: AppColors.accent,
-                              checkmarkColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                                side: BorderSide(
-                                  color: isSelected
-                                      ? AppColors.accent
-                                      : Colors.transparent,
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 0,
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                              )
+                            : null,
                       ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            // Content
-            Expanded(
-              child: searchQuery.isEmpty
-                  ? _buildTrendingSection(context, ref)
-                  : searchResultsAsync.when(
-                      data: (results) {
-                        if (results.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.search_off,
-                                  size: 64,
-                                  color: Theme.of(context).disabledColor,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No results found',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        color: Theme.of(context).disabledColor,
-                                      ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-
-                        return ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: results.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final item = results[index];
-                            // Check type dynamically since list is generic
-                            // In a real app we might wrap these in specific ViewModels or Widgets
-                            if (item.runtimeType.toString() == 'Quote') {
-                              // It's a Quote
-                              // Ideally imports 'quote_model.dart' but we rely on dynamic for now or cast
-                              // For valid access we need to utilize the model props
-                              return _buildResultItem(
-                                context,
-                                title: item.text,
-                                subtitle: item.author,
-                                icon: Icons.format_quote,
-                              );
-                            } else if (item.runtimeType.toString() ==
-                                'QuoteCollection') {
-                              return _buildResultItem(
-                                context,
-                                title: item.name,
-                                subtitle: '${item.quotes.length} quotes',
-                                icon: Icons.folder,
-                              );
-                            } else {
-                              // Fallback
-                              return _buildResultItem(
-                                context,
-                                title: item.toString(),
-                                subtitle: '',
-                                icon: Icons.article,
-                              );
-                            }
-                          },
-                        );
+                      onChanged: (value) {
+                        ref.read(searchQueryProvider.notifier).state = value;
                       },
-                      loading: () =>
-                          const Center(child: CircularProgressIndicator()),
-                      error: (err, stack) => Center(child: Text('Error: $err')),
+                      onSubmitted: (value) {
+                        if (value.isNotEmpty) {
+                          ref
+                              .read(recentSearchesProvider.notifier)
+                              .addSearch(value);
+                        }
+                      },
                     ),
-            ),
-          ],
+
+                    // Filters
+                    if (searchQuery.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: SearchFilter.values.map((filter) {
+                            final isSelected = currentFilter == filter;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FilterChip(
+                                label: Text(
+                                  filter.name.toUpperCase(),
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                selected: isSelected,
+                                onSelected: (selected) {
+                                  if (selected) {
+                                    ref
+                                            .read(searchFilterProvider.notifier)
+                                            .state =
+                                        filter;
+                                  }
+                                },
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).cardTheme.color,
+                                selectedColor: AppColors.accent,
+                                checkmarkColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                  side: BorderSide(
+                                    color: isSelected
+                                        ? AppColors.accent
+                                        : Colors.transparent,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 0,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              // Content
+              Expanded(
+                child: searchQuery.isEmpty
+                    ? _buildTrendingSection(context, ref)
+                    : searchResultsAsync.when(
+                        data: (results) {
+                          if (results.isEmpty) {
+                            return Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 64,
+                                    color: Theme.of(context).disabledColor,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No results found',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).disabledColor,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+
+                          return ListView.separated(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: results.length,
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 16),
+                            itemBuilder: (context, index) {
+                              final item = results[index];
+                              Widget content;
+
+                              if (item is Quote) {
+                                final heroTag =
+                                    'search_quote_${item.text.hashCode}_$index';
+                                content = Hero(
+                                  tag: heroTag,
+                                  child: Material(
+                                    type: MaterialType.transparency,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                QuoteDetailView(
+                                                  quote: item,
+                                                  heroTag: heroTag,
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: _buildResultItem(
+                                        context,
+                                        title: item.text,
+                                        subtitle: item.author,
+                                        icon: Icons.format_quote,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              } else if (item is QuoteCollection) {
+                                content = _buildResultItem(
+                                  context,
+                                  title: item.name,
+                                  subtitle: '${item.quotes.length} quotes',
+                                  icon: Icons.folder,
+                                );
+                              } else {
+                                content = _buildResultItem(
+                                  context,
+                                  title: item.toString(),
+                                  subtitle: '',
+                                  icon: Icons.article,
+                                );
+                              }
+
+                              return FadeSlideTransition(
+                                index: index,
+                                child: content,
+                              );
+                            },
+                          );
+                        },
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (err, stack) =>
+                            Center(child: Text('Error: $err')),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

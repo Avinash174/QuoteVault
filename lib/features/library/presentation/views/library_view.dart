@@ -1,3 +1,5 @@
+import '../widgets/collection_grid_item.dart';
+// import '../../../../data/models/quote_collection.dart'; // Removed or cleaner removal
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -17,6 +19,8 @@ class LibraryView extends ConsumerStatefulWidget {
 class _LibraryViewState extends ConsumerState<LibraryView>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final Set<String> _selectedItems = {};
+  bool _isSelectionMode = false;
 
   @override
   void initState() {
@@ -24,6 +28,13 @@ class _LibraryViewState extends ConsumerState<LibraryView>
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
+        // Exit selection mode when switching tabs
+        if (_isSelectionMode) {
+          setState(() {
+            _isSelectionMode = false;
+            _selectedItems.clear();
+          });
+        }
         setState(() {});
       }
     });
@@ -35,29 +46,148 @@ class _LibraryViewState extends ConsumerState<LibraryView>
     super.dispose();
   }
 
+  void _toggleSelection(String id) {
+    setState(() {
+      if (_selectedItems.contains(id)) {
+        _selectedItems.remove(id);
+        if (_selectedItems.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedItems.add(id);
+      }
+    });
+  }
+
+  void _enterSelectionMode(String id) {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedItems.add(id);
+    });
+  }
+
+  Future<void> _deleteSelected() async {
+    final count = _selectedItems.length;
+    if (count == 0) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return AlertDialog(
+          backgroundColor: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+          title: Text(
+            'Delete ${count > 1 ? "Collections" : "Collection"}?',
+            style: TextStyle(
+              color: isDark ? Colors.white : AppColors.textPrimaryLight,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to delete $count selected ${count > 1 ? "items" : "item"}? This cannot be undone.',
+            style: TextStyle(
+              color: isDark ? Colors.grey[300] : Colors.grey[600],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      final idsToDelete = _selectedItems.toList();
+      // Optimistic update done by Riverpod usually, but we call VM
+      for (final id in idsToDelete) {
+        ref.read(collectionViewModelProvider.notifier).deleteCollection(id);
+      }
+
+      setState(() {
+        _isSelectionMode = false;
+        _selectedItems.clear();
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Deleted $count ${count > 1 ? "collections" : "collection"}',
+            ),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final favorites = ref.watch(libraryViewModelProvider);
     final collections = ref.watch(collectionViewModelProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isCollectionsTab = _tabController.index == 1;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title:
-            Text(
-                  'My Library',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                    color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                  ),
-                )
-                .animate()
-                .fadeIn(duration: 600.ms, delay: 200.ms)
-                .slideX(begin: -0.2, end: 0),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  setState(() {
+                    _isSelectionMode = false;
+                    _selectedItems.clear();
+                  });
+                },
+              )
+            : null,
+        title: _isSelectionMode
+            ? Text(
+                '${_selectedItems.length} Selected',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                ),
+              )
+            : Text(
+                    'My Library',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 24,
+                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(duration: 600.ms, delay: 200.ms)
+                  .slideX(begin: -0.2, end: 0),
+        actions: [
+          if (_isSelectionMode)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+              onPressed: _deleteSelected,
+            )
+          else if (isCollectionsTab)
+            IconButton(
+              icon: Icon(
+                Icons.add,
+                color: isDark ? Colors.white : AppColors.accent,
+                size: 28,
+              ),
+              onPressed: () => _showCreateCollectionDialog(context, ref),
+            ),
+          const SizedBox(width: 8),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.accent,
@@ -91,89 +221,117 @@ class _LibraryViewState extends ConsumerState<LibraryView>
 
           // Collections Tab
           collections.when(
-            data: (data) => data.isEmpty
-                ? _buildEmptyState(
-                    'No collections yet',
-                    Icons.collections_bookmark_outlined,
-                    onAction: () => _showCreateCollectionDialog(context, ref),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(top: 16, bottom: 100),
-                    itemCount: data.length,
-                    itemBuilder: (context, index) {
-                      final collection = data[index];
-                      return ListTile(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => CollectionDetailView(
-                                  collection: collection,
-                                ),
-                              ),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 8,
-                            ),
-                            leading: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.white10
-                                    : Colors.black.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.folder,
-                                color: AppColors.accent,
-                              ),
-                            ),
-                            title: Text(
-                              collection.name,
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white
-                                    : AppColors.textPrimaryLight,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${collection.quotes.length} quotes',
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.grey[600]
-                                    : Colors.grey[400],
-                              ),
-                            ),
-                            trailing: const Icon(
-                              Icons.chevron_right,
-                              color: Colors.grey,
-                            ),
-                          )
-                          .animate()
-                          .fadeIn(delay: (100 * index).ms)
-                          .slideX(begin: 0.1, end: 0);
-                    },
+            data: (data) {
+              if (data.isEmpty) {
+                return _buildEmptyState(
+                  'No collections yet',
+                  Icons.collections_bookmark_outlined,
+                  onAction: () => _showCreateCollectionDialog(context, ref),
+                );
+              }
+
+              return Column(
+                children: [
+                  // Search Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search collections or quotes',
+                        prefixIcon: const Icon(Icons.search),
+                        filled: true,
+                        fillColor: isDark
+                            ? const Color(0xFF1E1E1E)
+                            : Colors.grey[200],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                      ),
+                    ),
                   ),
+
+                  // Grid
+                  Expanded(
+                    child: GridView.builder(
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        bottom: 100,
+                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.8,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                      itemCount: data.length,
+                      itemBuilder: (context, index) {
+                        final collection = data[index];
+                        final isSelected = _selectedItems.contains(
+                          collection.id,
+                        );
+
+                        return CollectionGridItem(
+                              collection: collection,
+                              isSelectionMode: _isSelectionMode,
+                              isSelected: isSelected,
+                              onTap: () {
+                                if (_isSelectionMode) {
+                                  _toggleSelection(collection.id);
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          CollectionDetailView(
+                                            collection: collection,
+                                          ),
+                                    ),
+                                  );
+                                }
+                              },
+                              onLongPress: () {
+                                if (!_isSelectionMode) {
+                                  _enterSelectionMode(collection.id);
+                                }
+                              },
+                            )
+                            .animate(target: _isSelectionMode ? 1 : 0)
+                            .shimmer(
+                              duration: 1.seconds,
+                              delay: 500.ms,
+                            ) // Usage hint
+                            .animate()
+                            .fadeIn(delay: (50 * index).ms)
+                            .scale(begin: const Offset(0.9, 0.9));
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (err, stack) => Center(child: Text('Error: $err')),
           ),
         ],
       ),
-      floatingActionButton: _tabController.index == 1
-          ? FloatingActionButton(
-              onPressed: () => _showCreateCollectionDialog(context, ref),
-              backgroundColor: AppColors.accent,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.add),
-            ).animate().scale()
-          : null,
+      // FAB only for Favorites (optional, or remove completely per request)
+      // User asked to remove "add collection button from collection tab"
+      // We moved it to AppBar. For favorites, we might not need an action button?
+      // I'll leave FAB as null for both for standard look, or keep it only for favorites?
+      // Favorites usually don't have a "Create" FAB. So null is safer.
+      floatingActionButton: null,
     );
   }
 
   void _showCreateCollectionDialog(BuildContext context, WidgetRef ref) {
+    // ... (Keep existing implementation)
     final controller = TextEditingController();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -226,6 +384,7 @@ class _LibraryViewState extends ConsumerState<LibraryView>
     IconData icon, {
     VoidCallback? onAction,
   }) {
+    // ... (Keep existing implementation)
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
@@ -250,6 +409,20 @@ class _LibraryViewState extends ConsumerState<LibraryView>
               fontSize: 16,
             ),
           ).animate().fadeIn(duration: 800.ms),
+          if (onAction != null) ...[
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: onAction,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Create Collection'),
+            ),
+          ],
         ],
       ),
     );

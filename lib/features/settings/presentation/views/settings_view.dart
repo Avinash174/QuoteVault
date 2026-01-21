@@ -10,6 +10,8 @@ import 'change_password_view.dart';
 import 'privacy_policy_view.dart';
 import 'terms_of_service_view.dart';
 
+import 'package:package_info_plus/package_info_plus.dart';
+
 class SettingsView extends ConsumerStatefulWidget {
   const SettingsView({super.key});
 
@@ -20,6 +22,20 @@ class SettingsView extends ConsumerStatefulWidget {
 class _SettingsViewState extends ConsumerState<SettingsView> {
   // Local state for toggles until we wire up ViewModels
   bool _dailyInspiration = true;
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _initPackageInfo();
+  }
+
+  Future<void> _initPackageInfo() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _version = '${info.version} (Build ${info.buildNumber})';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,9 +140,9 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
           Center(
             child: Column(
               children: [
-                const Text(
-                  'ThoughtVault v2.4.1',
-                  style: TextStyle(color: Colors.white38, fontSize: 12),
+                Text(
+                  'ThoughtVault v$_version',
+                  style: const TextStyle(color: Colors.white38, fontSize: 12),
                 ),
                 const SizedBox(height: 16),
                 Row(

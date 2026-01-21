@@ -41,10 +41,12 @@ class ShareBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -56,23 +58,22 @@ class ShareBottomSheet extends StatelessWidget {
             height: 4,
             margin: const EdgeInsets.only(bottom: 24),
             decoration: BoxDecoration(
-              color: Colors.grey[700],
+              color: isDark ? Colors.grey[700] : Colors.grey[300],
               borderRadius: BorderRadius.circular(2),
             ),
           ),
 
           Text(
             'Share Options',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             'THOUGHTVAULT',
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).textTheme.bodySmall?.color,
               letterSpacing: 2.0,
             ),
           ),
@@ -82,20 +83,20 @@ class ShareBottomSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: Theme.of(context).cardTheme.color,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[800]!),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.1),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '"${quote.text}"',
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(fontStyle: FontStyle.italic),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -149,9 +150,7 @@ class ShareBottomSheet extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () => _generateQuoteCard(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(
-                  0xFFFF4081,
-                ), // Pink-ish color from screenshot
+                backgroundColor: const Color(0xFFFF4081),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -174,9 +173,9 @@ class ShareBottomSheet extends StatelessWidget {
           const SizedBox(height: 32),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: Theme.of(context).disabledColor),
             ),
           ),
         ],
@@ -192,41 +191,47 @@ class ShareBottomSheet extends StatelessWidget {
     required VoidCallback onTap,
     bool traitWrapper = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[900]!),
+        border: Border.all(
+          color: Theme.of(context).dividerColor.withOpacity(0.1),
+        ),
       ),
       child: ListTile(
         onTap: onTap,
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.grey[900],
+            color: isDark ? Colors.grey[900] : Colors.grey[200],
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: Colors.white, size: 20),
+          child: Icon(
+            icon,
+            color: isDark ? Colors.white : AppColors.textPrimaryLight,
+            size: 20,
+          ),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: Colors.grey[500], fontSize: 12),
+          style: TextStyle(color: Theme.of(context).hintColor, fontSize: 12),
         ),
         trailing: traitWrapper
             ? const CircleAvatar(
-                backgroundColor: Color(0xFF00C851),
+                backgroundColor: AppColors.success,
                 radius: 10,
                 child: Icon(Icons.check, size: 12, color: Colors.white),
               )
-            : const Icon(Icons.chevron_right, color: Colors.grey),
+            : Icon(Icons.chevron_right, color: Theme.of(context).disabledColor),
       ),
     );
   }

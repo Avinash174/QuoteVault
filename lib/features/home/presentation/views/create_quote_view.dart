@@ -95,9 +95,11 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
               // Quote Input
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -106,10 +108,10 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
                 child: TextFormField(
                   controller: _quoteController,
                   maxLines: 5,
-                  style: const TextStyle(color: Colors.white, fontSize: 18),
-                  decoration: const InputDecoration(
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  decoration: InputDecoration(
                     hintText: 'Type your quote here...',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
                     border: InputBorder.none,
                   ),
                   validator: (value) {
@@ -128,9 +130,11 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
               // Author Input
               Container(
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -138,12 +142,15 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
                 ),
                 child: TextFormField(
                   controller: _authorController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
+                  style: Theme.of(context).textTheme.bodyLarge,
+                  decoration: InputDecoration(
                     hintText: 'Author (Optional)',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: TextStyle(color: Theme.of(context).hintColor),
                     border: InputBorder.none,
-                    icon: Icon(Icons.person_outline, color: Colors.white54),
+                    icon: Icon(
+                      Icons.person_outline,
+                      color: Theme.of(context).hintColor,
+                    ),
                   ),
                 ),
               ),

@@ -113,22 +113,20 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                       height: 200,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isDark ? AppColors.card : Colors.white,
+                        color: Theme.of(context).cardTheme.color,
                         boxShadow: [
                           BoxShadow(
-                            color:
-                                (isDark
-                                        ? AppColors.royalStart
-                                        : AppColors.accent)
-                                    .withValues(alpha: 0.1),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withOpacity(0.1),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),
                         ],
                         border: Border.all(
-                          color: isDark
-                              ? Colors.white10
-                              : Colors.black.withValues(alpha: 0.05),
+                          color: Theme.of(
+                            context,
+                          ).dividerColor.withOpacity(0.1),
                           width: 1,
                         ),
                       ),
@@ -140,7 +138,8 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                             child: Text(
                               '12',
                               style: TextStyle(
-                                color: isDark ? Colors.white38 : Colors.black26,
+                                color: Theme.of(context).hintColor,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -149,7 +148,8 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                             child: Text(
                               '6',
                               style: TextStyle(
-                                color: isDark ? Colors.white38 : Colors.black26,
+                                color: Theme.of(context).hintColor,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -158,7 +158,8 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                             child: Text(
                               '9',
                               style: TextStyle(
-                                color: isDark ? Colors.white38 : Colors.black26,
+                                color: Theme.of(context).hintColor,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -167,7 +168,8 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                             child: Text(
                               '3',
                               style: TextStyle(
-                                color: isDark ? Colors.white38 : Colors.black26,
+                                color: Theme.of(context).hintColor,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -175,7 +177,7 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                             width: 12,
                             height: 12,
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.white : AppColors.accent,
+                              color: Theme.of(context).colorScheme.primary,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -185,7 +187,9 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
                               width: 4,
                               height: 70,
                               margin: const EdgeInsets.only(bottom: 50),
-                              color: AppColors.accent.withValues(alpha: 0.8),
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withOpacity(0.8),
                             ),
                           ),
                         ],

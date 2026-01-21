@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../../../library/presentation/providers/library_viewmodel.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/quote_model.dart';
 import '../../../library/presentation/widgets/add_to_collection_sheet.dart';
@@ -14,8 +15,11 @@ class QuoteCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final cardTheme = Theme.of(context).cardTheme;
+    final favorites = ref.watch(libraryViewModelProvider);
+    final isFavorite = favorites.any(
+      (q) => q.text == quote.text && q.author == quote.author,
+    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -72,6 +76,18 @@ class QuoteCard extends ConsumerWidget {
                 children: [
                   _buildActionButton(
                     context,
+                    icon: isFavorite ? Icons.favorite : Icons.favorite_border,
+                    isDark: isDark,
+                    color: isFavorite ? Colors.redAccent : null,
+                    onPressed: () {
+                      ref
+                          .read(libraryViewModelProvider.notifier)
+                          .toggleFavorite(quote);
+                    },
+                  ),
+                  const SizedBox(width: 8),
+                  _buildActionButton(
+                    context,
                     icon: Icons.collections_bookmark_outlined,
                     isDark: isDark,
                     onPressed: () {
@@ -112,6 +128,7 @@ class QuoteCard extends ConsumerWidget {
     required IconData icon,
     required VoidCallback onPressed,
     required bool isDark,
+    Color? color,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -123,7 +140,7 @@ class QuoteCard extends ConsumerWidget {
       child: IconButton(
         icon: Icon(
           icon,
-          color: isDark ? Colors.white : AppColors.textPrimaryLight,
+          color: color ?? (isDark ? Colors.white : AppColors.textPrimaryLight),
           size: 20,
         ),
         onPressed: onPressed,

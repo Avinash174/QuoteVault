@@ -43,8 +43,12 @@ class ForceUpdateService {
     List<int> m = min.split('.').map(int.parse).toList();
 
     // Normalize lengths (e.g., 1.0 vs 1.0.1)
-    while (c.length < 3) c.add(0);
-    while (m.length < 3) m.add(0);
+    while (c.length < 3) {
+      c.add(0);
+    }
+    while (m.length < 3) {
+      m.add(0);
+    }
 
     for (int i = 0; i < 3; i++) {
       if (c[i] < m[i]) return true;

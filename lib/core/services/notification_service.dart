@@ -124,7 +124,7 @@ class NotificationService {
       quote = null;
     }
 
-    final String title = 'Quote of the Day';
+    const String title = 'Quote of the Day';
     final String body = quote != null
         ? '"${quote.text}" - ${quote.author}'
         : 'Time for your daily spark of inspiration!';

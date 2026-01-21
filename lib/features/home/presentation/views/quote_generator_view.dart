@@ -71,13 +71,23 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text('Widget Preview'),
+        title: Text(
+          'Widget Preview',
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         centerTitle: true,
+        iconTheme: IconThemeData(color: Theme.of(context).iconTheme.color),
         actions: [
-          IconButton(icon: const Icon(Icons.more_horiz), onPressed: () {}),
+          IconButton(
+            icon: Icon(
+              Icons.more_horiz,
+              color: Theme.of(context).iconTheme.color,
+            ),
+            onPressed: () {},
+          ),
         ],
       ),
       body: Column(
@@ -213,9 +223,18 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
           // Controls
           Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -227,7 +246,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                     icon: const Icon(Icons.check_circle),
                     label: const Text('Save Appearance / Share'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF514A9D), // Royal blue
+                      backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -236,10 +255,10 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'LAST SYNCED: JUST NOW',
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: Theme.of(context).hintColor,
                     fontSize: 10,
                     letterSpacing: 1.5,
                   ),
@@ -272,7 +291,11 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                                           color: AppColors.accent,
                                           width: 2,
                                         )
-                                      : null,
+                                      : Border.all(
+                                          color: Theme.of(
+                                            context,
+                                          ).dividerColor.withOpacity(0.1),
+                                        ),
                                 ),
                                 child: isSelected
                                     ? const Center(
@@ -289,7 +312,9 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                                 style: TextStyle(
                                   color: isSelected
                                       ? AppColors.accent
-                                      : Colors.grey,
+                                      : Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.color,
                                   fontSize: 12,
                                   fontWeight: isSelected
                                       ? FontWeight.bold
@@ -308,10 +333,10 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E2E),
+                    color: Theme.of(context).cardTheme.color,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.indigo.withValues(alpha: 0.3),
+                      color: Theme.of(context).dividerColor.withOpacity(0.1),
                     ),
                   ),
                   child: Row(
@@ -326,7 +351,9 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                         child: Text(
                           "Theme settings are synced instantly via Firebase and will apply to your widget automatically.",
                           style: TextStyle(
-                            color: Colors.grey[400],
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color,
                             fontSize: 12,
                           ),
                         ),

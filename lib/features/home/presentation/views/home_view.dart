@@ -6,6 +6,7 @@ import '../widgets/quote_card_shimmer.dart';
 import '../providers/quote_viewmodel.dart';
 import '../../../../core/widgets/error_view.dart';
 import 'search_screen.dart';
+import 'quote_detail_view.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -215,7 +216,31 @@ class HomeView extends ConsumerWidget {
             quotesAsync.when(
               data: (quotes) => SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
-                  return QuoteCard(quote: quotes[index]);
+                  final quote = quotes[index];
+                  // Use a unique tag based on quote content or ID (if available)
+                  // Using hashcode of text+author is a reasonable fallback for uniqueness in this list
+                  final heroTag = 'quote_${quote.text.hashCode}_$index';
+
+                  return Hero(
+                    tag: heroTag,
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => QuoteDetailView(
+                                quote: quote,
+                                heroTag: heroTag,
+                              ),
+                            ),
+                          );
+                        },
+                        child: QuoteCard(quote: quote),
+                      ),
+                    ),
+                  );
                 }, childCount: quotes.length),
               ),
               loading: () => SliverList(

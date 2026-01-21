@@ -8,11 +8,11 @@ class TermsOfServiceView extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(title: const Text('Terms of Service')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
             Text(
               'Terms of Service',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),

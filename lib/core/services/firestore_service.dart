@@ -233,6 +233,11 @@ class FirestoreService {
           return snapshot.docs.map((doc) {
             final data = doc.data();
             data['id'] = doc.id;
+            if (data['createdAt'] is Timestamp) {
+              data['createdAt'] = (data['createdAt'] as Timestamp)
+                  .toDate()
+                  .toIso8601String();
+            }
             return QuoteCollection.fromJson(data);
           }).toList();
         });

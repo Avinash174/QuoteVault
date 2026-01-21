@@ -12,9 +12,7 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: AppColors.accent,
         secondary: AppColors.royalStart,
-        background: AppColors.backgroundLight,
         surface: AppColors.surfaceLight,
-        onBackground: AppColors.textPrimaryLight,
         onSurface: AppColors.textPrimaryLight,
       ),
       textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme).apply(
@@ -29,7 +27,11 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.dark,
+          statusBarBrightness: Brightness.light,
+        ),
         iconTheme: IconThemeData(color: AppColors.textPrimaryLight),
         titleTextStyle: TextStyle(
           fontSize: 20,
@@ -99,9 +101,7 @@ class AppTheme {
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.accent,
-        background: AppColors.background,
         surface: AppColors.surface,
-        onBackground: AppColors.textPrimary,
         onSurface: AppColors.textPrimary,
       ),
       textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).apply(
@@ -116,7 +116,13 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness:
+              Brightness.light, // Icons/Text light for dark background
+          statusBarBrightness:
+              Brightness.dark, // Status bar background dark (iOS)
+        ),
         iconTheme: IconThemeData(color: AppColors.textPrimary),
         titleTextStyle: TextStyle(
           fontSize: 20,
