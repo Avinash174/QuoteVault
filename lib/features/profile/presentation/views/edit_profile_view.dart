@@ -7,7 +7,6 @@ import 'dart:io';
 import 'dart:developer' as developer;
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class EditProfileView extends StatefulWidget {
   const EditProfileView({super.key});
@@ -211,14 +210,9 @@ class _EditProfileViewState extends State<EditProfileView> {
       if (source == null) return;
 
       if (source == ImageSource.camera) {
-        final status = await Permission.camera.request();
-        if (status.isPermanentlyDenied) {
-          if (mounted) {
-            _showSettingsDialog();
-          }
-          return;
-        }
-        if (!status.isGranted) return;
+        // ImagePicker handles the camera intent and basic permissions
+        // If specific permission handling is needed without permission_handler,
+        // we rely on the OS acting on the intent or the plugin's internal handling.
       }
 
       final XFile? pickedFile = await _picker.pickImage(
@@ -241,31 +235,6 @@ class _EditProfileViewState extends State<EditProfileView> {
         SnackbarUtils.showError(context, 'Error', 'Error picking image: $e');
       }
     }
-  }
-
-  void _showSettingsDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Camera Permission Required'),
-        content: const Text(
-          'This app needs camera access to take profile photos. Please enable it in settings.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              openAppSettings();
-            },
-            child: const Text('Settings'),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<String?> _uploadImage(File image) async {
