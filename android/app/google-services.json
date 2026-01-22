@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:1075166722821:android:94d72c1dbfe9d0758fd56c",
         "android_client_info": {
-          "package_name": "com.avinashmagar.thoughtvault"
+          "package_name": "com.avinashmagar.quotevault"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "1075166722821-veg1dfacd1au2vvi3flv61m9vsmrf4i7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.avinashmagar.thoughtvault",
+            "package_name": "com.avinashmagar.quotevault",
             "certificate_hash": "f1f802223b79634dee52e8ae6fb978c98085e5b1"
           }
         },
