@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAgq1zFwOpiRJVR4SiJSWxR9uZ8NFnn6u4',
-    appId: '1:1075166722821:android:94d72c1dbfe9d0758fd56c',
+    appId: '1:1075166722821:android:e7ed3c841ed374cb8fd56c',
     messagingSenderId: '1075166722821',
     projectId: 'quotevault-60a2f',
     storageBucket: 'quotevault-60a2f.firebasestorage.app',
