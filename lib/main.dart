@@ -16,34 +16,43 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.messageId}");
 }
 
-void main() async {
+void main() {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      try {
-        await dotenv.load(fileName: ".env");
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
+      // Start app IMMEDIATELY
+      runApp(const ProviderScope(child: MainApp()));
 
-        // Set the background messaging handler early on, as a named top-level function
-        FirebaseMessaging.onBackgroundMessage(
-          _firebaseMessagingBackgroundHandler,
-        );
-
-        await NotificationService().init();
-
-        runApp(const ProviderScope(child: MainApp()));
-      } catch (e, stack) {
-        print("Startup Error: $e\n$stack");
-        runApp(ErrorApp(error: e.toString(), stackTrace: stack.toString()));
-      }
+      // Do heavy work AFTER UI is shown
+      unawaited(_initApp());
     },
     (error, stack) {
-      print("Uncaught Error: $error\n$stack");
+      debugPrint("Uncaught Error: $error\n$stack");
     },
   );
+}
+
+Future<void> _initApp() async {
+  try {
+    // .env (safe)
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (_) {}
+
+    // Firebase (safe)
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // FCM background handler
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    // Notifications (safe after UI)
+    await NotificationService().init();
+  } catch (e, stack) {
+    debugPrint("Init error: $e\n$stack");
+  }
 }
 
 class ErrorApp extends StatelessWidget {

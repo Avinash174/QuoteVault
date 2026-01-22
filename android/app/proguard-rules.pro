@@ -29,3 +29,11 @@
 
 # Flutter Local Notifications
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
+
+# Google Play Core (often missing in R8)
+-dontwarn com.google.android.play.core.splitcompat.**
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**
+-keep class com.google.android.play.core.splitcompat.** { *; }
+-keep class com.google.android.play.core.splitinstall.** { *; }
+-keep class com.google.android.play.core.tasks.** { *; }
