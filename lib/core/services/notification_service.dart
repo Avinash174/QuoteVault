@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -76,9 +77,16 @@ class NotificationService {
     // Get the token (for debugging/backend registration)
     try {
       String? token = await _fcm.getToken();
-      print("FCM Token: $token");
+      developer.log(
+        "🔥🔥 FCM Token: $token",
+        name: 'ThoughtVault.Notification',
+      );
     } catch (e) {
-      print("Error getting FCM token: $e");
+      developer.log(
+        "Error getting FCM token: $e",
+        name: 'ThoughtVault.Notification',
+        error: e,
+      );
     }
   }
 
@@ -102,32 +110,38 @@ class NotificationService {
   }
 
   void _showLocalNotification(RemoteMessage message) async {
+    // Try to get title & body from notification payload, fallback to data payload
+    String? title = message.notification?.title ?? message.data['title'];
+    String? body = message.notification?.body ?? message.data['body'];
+
+    // If we have no content, we can't show a meaningful notification
+    if (title == null && body == null) return;
+
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
-    if (notification != null) {
-      await flutterLocalNotificationsPlugin.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            'high_importance_channel',
-            'High Importance Notifications',
-            channelDescription:
-                'This channel is used for important notifications.',
-            importance: Importance.max,
-            priority: Priority.high,
-            icon: android?.smallIcon,
-          ),
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
+    await flutterLocalNotificationsPlugin.show(
+      notification?.hashCode ?? message.messageId.hashCode,
+      title,
+      body,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'high_importance_channel',
+          'High Importance Notifications',
+          channelDescription:
+              'This channel is used for important notifications.',
+          importance: Importance.max,
+          priority: Priority.high,
+          // Explicitly use launcher_icon if not provided in payload
+          icon: android?.smallIcon ?? '@mipmap/launcher_icon',
         ),
-      );
-    }
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+    );
   }
 
   Future<void> scheduleDailyNotification(int hour, int minute) async {
