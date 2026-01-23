@@ -14,11 +14,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "1075166722821-0t7niqvvicvbp9p13g72v3idq41qqtc4.apps.googleusercontent.com",
+          "client_id": "1075166722821-1a5d57sfkfa9hs69860g8pus0u68m974.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.avinashmagar.thoughtvault",
-            "certificate_hash": "f1f802223b79634dee52e8ae6fb978c98085e5b1"
+            "certificate_hash": "7b2bddec8ebe737102bcbba48f1f8b543720650b"
           }
         },
         {

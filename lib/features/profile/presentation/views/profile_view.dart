@@ -13,6 +13,7 @@ import '../providers/stats_provider.dart';
 import '../../../home/presentation/providers/bottom_nav_provider.dart';
 import 'edit_profile_view.dart';
 import 'edit_goal_view.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 
 class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
@@ -320,6 +321,13 @@ class ProfileView extends ConsumerWidget {
         GestureDetector(
           onTap: () async {
             await AuthService().signOut();
+            if (context.mounted) {
+              SnackbarUtils.showSuccess(
+                context,
+                'Signed Out',
+                'Successfully signed out',
+              );
+            }
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),

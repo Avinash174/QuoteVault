@@ -7,6 +7,7 @@ import '../../../notifications/presentation/views/notification_time_view.dart';
 import '../../../auth/presentation/views/login_view.dart';
 import '../../../../core/services/auth_service.dart';
 import 'change_password_view.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import 'privacy_policy_view.dart';
 import 'terms_of_service_view.dart';
 
@@ -129,6 +130,11 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
             onTap: () async {
               await AuthService().signOut();
               if (context.mounted) {
+                SnackbarUtils.showSuccess(
+                  context,
+                  'Signed Out',
+                  'Successfully signed out',
+                );
                 // If we are in settings and sign out, we can just pop settings
                 // The MainScreen (Profile) will update to Guest automatically
                 Navigator.of(context).pop();

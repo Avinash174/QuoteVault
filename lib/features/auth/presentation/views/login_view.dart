@@ -58,6 +58,13 @@ class _LoginViewState extends State<LoginView> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        if (mounted) {
+          SnackbarUtils.showSuccess(
+            context,
+            'Welcome Back!',
+            'Successfully signed in',
+          );
+        }
       } else {
         await _authService.signUpWithEmail(
           email: _emailController.text.trim(),
@@ -108,6 +115,12 @@ class _LoginViewState extends State<LoginView> {
     try {
       await authMethod();
       if (mounted) {
+        SnackbarUtils.showSuccess(
+          context,
+          'Welcome Back!',
+          'Successfully signed in with Google', // Generalizing as only Google is active
+        );
+
         if (Navigator.canPop(context)) {
           Navigator.of(context).pop();
         } else {
