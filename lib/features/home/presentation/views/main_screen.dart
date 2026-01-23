@@ -24,6 +24,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   @override
   void initState() {
     super.initState();
+    // Reset to Explore tab whenever MainScreen is loaded (e.g. after login)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(bottomNavNotifierProvider.notifier).setIndex(0);
+    });
     _updateUserStreak();
   }
 
