@@ -1,5 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:developer' as developer;
 import 'firestore_service.dart';
 
@@ -64,56 +63,7 @@ class AuthService {
 
   Future<void> signOut() async {
     developer.log('User signing out', name: 'ThoughtVault.Auth');
-    try {
-      await GoogleSignIn().signOut();
-    } catch (e) {
-      // Ignore if google sign in wasn't used or fails
-      developer.log(
-        'Google sign out silent error: $e',
-        name: 'ThoughtVault.Auth',
-      );
-    }
     await _auth.signOut();
-  }
-
-  // ---------------------------------------------------------------------------
-  // GOOGLE SIGN-IN
-  // ---------------------------------------------------------------------------
-
-  Future<UserCredential?> signInWithGoogle() async {
-    try {
-      final GoogleSignIn googleSignIn = GoogleSignIn();
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-
-      if (googleUser == null) {
-        // User canceled the sign-in flow
-        return null;
-      }
-
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      final OAuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      final cred = await _auth.signInWithCredential(credential);
-      if (cred.user != null) {
-        await _firestoreService.saveUser(cred.user!);
-      }
-      return cred;
-    } catch (e) {
-      developer.log(
-        'Google Sign-In failed',
-        name: 'ThoughtVault.Auth',
-        error: e,
-      );
-      throw FirebaseAuthException(
-        code: 'google-sign-in-failed',
-        message: 'Google Sign-In failed: $e',
-      );
-    }
   }
 
   // ---------------------------------------------------------------------------

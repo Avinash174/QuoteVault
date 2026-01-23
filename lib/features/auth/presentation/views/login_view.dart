@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/auth_service.dart';
-import '../../../../core/utils/snackbar_utils.dart'; // Added
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../home/presentation/views/main_screen.dart';
 
 class LoginView extends StatefulWidget {
@@ -24,20 +23,12 @@ class _LoginViewState extends State<LoginView> {
 
   final _authService = AuthService();
 
-  // ---------------------------------------------------------------------------
-  // DISPOSE
-  // ---------------------------------------------------------------------------
-
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
-
-  // ---------------------------------------------------------------------------
-  // EMAIL AUTH
-  // ---------------------------------------------------------------------------
 
   Future<void> _handleAuth() async {
     if (_emailController.text.trim().isEmpty ||
@@ -105,50 +96,6 @@ class _LoginViewState extends State<LoginView> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
-  // ---------------------------------------------------------------------------
-  // SOCIAL AUTH
-  // ---------------------------------------------------------------------------
-
-  Future<void> _handleSocialAuth(Future<void> Function() authMethod) async {
-    setState(() => _isLoading = true);
-    try {
-      await authMethod();
-      if (mounted) {
-        SnackbarUtils.showSuccess(
-          context,
-          'Welcome Back!',
-          'Successfully signed in with Google', // Generalizing as only Google is active
-        );
-
-        if (Navigator.canPop(context)) {
-          Navigator.of(context).pop();
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MainScreen()),
-          );
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        SnackbarUtils.showError(
-          context,
-          'Social Login Failed',
-          e.message ?? 'An error occurred',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        SnackbarUtils.showError(context, 'Error', e.toString());
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // FORGOT PASSWORD
-  // ---------------------------------------------------------------------------
 
   Future<void> _handleForgotPassword() async {
     final emailController = TextEditingController();
@@ -222,10 +169,6 @@ class _LoginViewState extends State<LoginView> {
       ),
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // UI
-  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
@@ -304,44 +247,13 @@ class _LoginViewState extends State<LoginView> {
                         ),
                 ),
               ),
-
-              const SizedBox(height: 32),
-
-              Divider(color: Theme.of(context).dividerColor),
               const SizedBox(height: 24),
-
-              Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: _socialButton(
-                      icon: FontAwesomeIcons.google,
-                      label: 'Google',
-                      onTap: () =>
-                          _handleSocialAuth(_authService.signInWithGoogle),
-                      backgroundColor:
-                          Theme.of(context).cardTheme.color ?? Colors.white,
-                      foregroundColor:
-                          Theme.of(context).textTheme.bodyLarge?.color ??
-                          Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (Theme.of(context).platform == TargetPlatform.iOS)
-                    // Removed Apple Sign In per user request
-                    const SizedBox.shrink(),
-                ],
-              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  // ---------------------------------------------------------------------------
-  // HELPERS
-  // ---------------------------------------------------------------------------
 
   Widget _buildSegmentedControl() {
     return Container(
@@ -435,29 +347,6 @@ class _LoginViewState extends State<LoginView> {
                     setState(() => _obscurePassword = !_obscurePassword),
               )
             : null,
-      ),
-    );
-  }
-
-  Widget _socialButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required Color backgroundColor,
-    required Color foregroundColor,
-  }) {
-    return SizedBox(
-      height: 50,
-      child: ElevatedButton.icon(
-        onPressed: _isLoading ? null : onTap,
-        icon: FaIcon(icon, color: foregroundColor),
-        label: Text(label, style: TextStyle(color: foregroundColor)),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
       ),
     );
   }
