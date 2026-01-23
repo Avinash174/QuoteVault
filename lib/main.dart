@@ -21,38 +21,35 @@ void main() {
     () async {
       WidgetsFlutterBinding.ensureInitialized();
 
-      // Start app IMMEDIATELY
+      try {
+        await dotenv.load(fileName: ".env");
+      } catch (e) {
+        debugPrint("DotEnv not loaded: $e");
+      }
+
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+
+      // FCM background handler
+      FirebaseMessaging.onBackgroundMessage(
+        _firebaseMessagingBackgroundHandler,
+      );
+
+      // Start app
       runApp(const ProviderScope(child: MainApp()));
 
-      // Do heavy work AFTER UI is shown
-      unawaited(_initApp());
+      // Initialize other services
+      try {
+        await NotificationService().init();
+      } catch (e) {
+        debugPrint("Notification init failed: $e");
+      }
     },
     (error, stack) {
       debugPrint("Uncaught Error: $error\n$stack");
     },
   );
-}
-
-Future<void> _initApp() async {
-  try {
-    // .env (safe)
-    try {
-      await dotenv.load(fileName: ".env");
-    } catch (_) {}
-
-    // Firebase (safe)
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
-    // FCM background handler
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    // Notifications (safe after UI)
-    await NotificationService().init();
-  } catch (e, stack) {
-    debugPrint("Init error: $e\n$stack");
-  }
 }
 
 class ErrorApp extends StatelessWidget {
