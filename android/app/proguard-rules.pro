@@ -1,4 +1,4 @@
-#Flutter Wrapper
+# Flutter Wrapper
 -keep class io.flutter.app.** { *; }
 -keep class io.flutter.plugin.**  { *; }
 -keep class io.flutter.util.**  { *; }
@@ -37,3 +37,14 @@
 -keep class com.google.android.play.core.splitcompat.** { *; }
 -keep class com.google.android.play.core.splitinstall.** { *; }
 -keep class com.google.android.play.core.tasks.** { *; }
+
+# Prevent obfuscation of data models used in serialization
+-keep class com.avinashmagar.thoughtvault.data.models.** { *; }
+-keepnames class com.avinashmagar.thoughtvault.data.models.** { *; }
+
+# Keep generic JNI/Flutter embedding classes
+-keep class io.flutter.embedding.engine.** { *; }
+
+# Additional Firebase Auth specifics
+-keep class com.google.firebase.auth.** { *; }
+
