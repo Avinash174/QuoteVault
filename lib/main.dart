@@ -9,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/widgets/auth_wrapper.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/theme_provider.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -35,6 +36,13 @@ void main() {
       FirebaseMessaging.onBackgroundMessage(
         _firebaseMessagingBackgroundHandler,
       );
+
+      // Initialize AdMob
+      try {
+        await MobileAds.instance.initialize();
+      } catch (e) {
+        debugPrint("AdMob init failed: $e");
+      }
 
       // Start app
       runApp(const ProviderScope(child: MainApp()));
