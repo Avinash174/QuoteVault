@@ -12,7 +12,6 @@ import 'create_quote_view.dart';
 import 'search_screen.dart';
 
 import '../providers/bottom_nav_provider.dart';
-import '../../../../core/widgets/banner_ad_widget.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -59,14 +58,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           children: [
             // Main Content
             IndexedStack(index: currentIndex, children: _screens),
-
-            // Banner Ad
-            Positioned(
-              bottom: 80, // Height of the bottom nav area
-              left: 0,
-              right: 0,
-              child: const BannerAdWidget(),
-            ),
 
             // Bottom Navigation
             Positioned(
