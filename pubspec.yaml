@@ -37,6 +37,7 @@ dependencies:
   url_launcher: ^6.3.2
   awesome_snackbar_content: ^0.1.8
   google_mobile_ads: ^7.0.0
+  connectivity_plus: ^7.0.0
 
 dev_dependencies:
   flutter_test:

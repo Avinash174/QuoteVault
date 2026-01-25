@@ -9,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/firestore_service.dart';
+import '../../../../core/services/ad_service.dart';
 import '../../../../data/models/quote_model.dart';
 
 class QuoteGeneratorView extends StatefulWidget {
@@ -45,27 +46,34 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
   }
 
   void _shareImage() async {
-    try {
-      final Uint8List? image = await _screenshotController.capture();
-      if (image != null) {
-        final directory = await getApplicationDocumentsDirectory();
-        final imagePath = await File(
-          '${directory.path}/quote_card.png',
-        ).create();
-        await imagePath.writeAsBytes(image);
+    AdService().showRewardedAd(
+      onAdDismissed: () {
+        // ad failed or dismissed
+      },
+      onUserEarnedReward: () async {
+        try {
+          final Uint8List? image = await _screenshotController.capture();
+          if (image != null) {
+            final directory = await getApplicationDocumentsDirectory();
+            final imagePath = await File(
+              '${directory.path}/quote_card.png',
+            ).create();
+            await imagePath.writeAsBytes(image);
 
-        // Share the file
-        await Share.shareXFiles([
-          XFile(imagePath.path),
-        ], text: 'Check out this quote from ThoughtVault!');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error generating image: $e')));
-      }
-    }
+            // Share the file
+            await Share.shareXFiles([
+              XFile(imagePath.path),
+            ], text: 'Check out this quote from ThoughtVault!');
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error generating image: $e')),
+            );
+          }
+        }
+      },
+    );
   }
 
   @override

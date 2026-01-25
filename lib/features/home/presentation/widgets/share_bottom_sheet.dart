@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/ad_service.dart';
 import '../../../../data/models/quote_model.dart';
 import '../views/quote_generator_view.dart';
 
@@ -11,7 +12,14 @@ class ShareBottomSheet extends StatelessWidget {
   const ShareBottomSheet({super.key, required this.quote});
 
   void _shareAsText(BuildContext context) {
-    Share.share('"${quote.text}" - ${quote.author}');
+    AdService().showRewardedAd(
+      onAdDismissed: () {
+        // Nothing special to do when dismissed without reward
+      },
+      onUserEarnedReward: () {
+        Share.share('"${quote.text}" - ${quote.author}');
+      },
+    );
     Navigator.pop(context);
   }
 

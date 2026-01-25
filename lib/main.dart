@@ -9,6 +9,8 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/widgets/auth_wrapper.dart';
 import 'core/services/notification_service.dart';
 import 'core/theme/theme_provider.dart';
+import 'core/providers/connectivity_provider.dart';
+import 'core/widgets/no_internet_banner.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 @pragma('vm:entry-point')
@@ -134,6 +136,21 @@ class MainApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
+      builder: (context, child) {
+        final isOffline = ref.watch(isOfflineProvider);
+        return Stack(
+          children: [
+            if (child != null) child,
+            if (isOffline)
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: NoInternetBanner(),
+              ),
+          ],
+        );
+      },
       home: const AuthWrapper(),
     );
   }
