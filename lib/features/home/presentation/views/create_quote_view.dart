@@ -3,6 +3,7 @@ import '../../../../core/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/widgets/banner_ad_widget.dart';
+import '../../../../core/services/firestore_service.dart';
 
 class CreateQuoteView extends StatefulWidget {
   const CreateQuoteView({super.key});
@@ -32,12 +33,11 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        // Should not happen due to AuthWrapper, but nice to handle
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('You must be logged in to create a quote'),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('You must be logged in to post')),
+          );
+        }
         return;
       }
 
@@ -52,21 +52,25 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
         'likes': 0,
       };
 
-      await FirebaseFirestore.instance
-          .collection('community_quotes')
-          .add(quoteData);
+      await FirestoreService().createCommunityQuote(quoteData);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Quote published successfully!')),
+          const SnackBar(
+            content: Text('Quote published! It will appear in the feed soon.'),
+            backgroundColor: AppColors.success,
+          ),
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to publish quote: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to publish: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -103,7 +107,7 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).dividerColor.withOpacity(0.1),
+                          ).dividerColor.withValues(alpha: 0.1),
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(
@@ -142,7 +146,7 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
                         border: Border.all(
                           color: Theme.of(
                             context,
-                          ).dividerColor.withOpacity(0.1),
+                          ).dividerColor.withValues(alpha: 0.1),
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(
@@ -178,7 +182,7 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         elevation: 8,
-                        shadowColor: AppColors.accent.withOpacity(0.4),
+                        shadowColor: AppColors.accent.withValues(alpha: 0.4),
                       ),
                       child: _isLoading
                           ? const SizedBox(

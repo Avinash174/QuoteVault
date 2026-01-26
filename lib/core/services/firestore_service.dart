@@ -355,4 +355,22 @@ class FirestoreService {
       rethrow;
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // COMMUNITY QUOTES
+  // ---------------------------------------------------------------------------
+
+  Future<void> createCommunityQuote(Map<String, dynamic> quoteData) async {
+    try {
+      await _db.collection('community_quotes').add(quoteData);
+      developer.log('Community quote created', name: 'ThoughtVault.Firestore');
+    } catch (e) {
+      developer.log(
+        'Error creating community quote',
+        name: 'ThoughtVault.Firestore',
+        error: e,
+      );
+      rethrow;
+    }
+  }
 }

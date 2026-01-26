@@ -5,6 +5,7 @@ import '../widgets/quote_card.dart';
 import '../widgets/quote_card_shimmer.dart';
 import '../providers/quote_viewmodel.dart';
 import '../../../../core/widgets/error_view.dart';
+import '../../../../core/widgets/banner_ad_widget.dart';
 import 'search_screen.dart';
 import 'quote_detail_view.dart';
 
@@ -214,35 +215,52 @@ class HomeView extends ConsumerWidget {
 
             // List
             quotesAsync.when(
-              data: (quotes) => SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final quote = quotes[index];
-                  // Use a unique tag based on quote content or ID (if available)
-                  // Using hashcode of text+author is a reasonable fallback for uniqueness in this list
-                  final heroTag = 'quote_${quote.text.hashCode}_$index';
+              data: (quotes) {
+                const adInterval = 5;
+                final totalItems =
+                    quotes.length + (quotes.length / adInterval).floor();
 
-                  return Hero(
-                    tag: heroTag,
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => QuoteDetailView(
-                                quote: quote,
-                                heroTag: heroTag,
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    // Check if this position is for an ad
+                    if ((index + 1) % (adInterval + 1) == 0) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        child: BannerAdWidget(),
+                      );
+                    }
+
+                    // Calculate the actual quote index
+                    final quoteIndex =
+                        index - (index / (adInterval + 1)).floor();
+                    if (quoteIndex >= quotes.length) return null;
+
+                    final quote = quotes[quoteIndex];
+                    final heroTag = 'quote_${quote.text.hashCode}_$index';
+
+                    return Hero(
+                      tag: heroTag,
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => QuoteDetailView(
+                                  quote: quote,
+                                  heroTag: heroTag,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        child: QuoteCard(quote: quote),
+                            );
+                          },
+                          child: QuoteCard(quote: quote),
+                        ),
                       ),
-                    ),
-                  );
-                }, childCount: quotes.length),
-              ),
+                    );
+                  }, childCount: totalItems),
+                );
+              },
               loading: () => SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) => const QuoteCardShimmer(),

@@ -40,10 +40,27 @@ class ShareBottomSheet extends StatelessWidget {
   }
 
   void _generateQuoteCard(BuildContext context) {
-    Navigator.pop(context); // Close the sheet
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => QuoteGeneratorView(quote: quote)),
+    final navigator = Navigator.of(context);
+    AdService().showRewardedAd(
+      onAdDismissed: () {
+        // Optional: still navigate or allow access even if dismissed?
+        // Usually, to be user friendly, we allow it or show another ad.
+        // For now, let's proceed to ensure functionality.
+        if (navigator.canPop()) navigator.pop();
+        navigator.push(
+          MaterialPageRoute(
+            builder: (context) => QuoteGeneratorView(quote: quote),
+          ),
+        );
+      },
+      onUserEarnedReward: () {
+        if (navigator.canPop()) navigator.pop();
+        navigator.push(
+          MaterialPageRoute(
+            builder: (context) => QuoteGeneratorView(quote: quote),
+          ),
+        );
+      },
     );
   }
 

@@ -11,7 +11,7 @@ import 'core/services/notification_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/providers/connectivity_provider.dart';
 import 'core/widgets/no_internet_banner.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'core/services/ad_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -39,9 +39,9 @@ void main() {
         _firebaseMessagingBackgroundHandler,
       );
 
-      // Initialize AdMob
+      // Initialize AdMob via AdService to handle preloading
       try {
-        await MobileAds.instance.initialize();
+        await AdService().init();
       } catch (e) {
         debugPrint("AdMob init failed: $e");
       }
