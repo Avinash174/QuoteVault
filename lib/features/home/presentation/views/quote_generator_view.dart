@@ -29,11 +29,11 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
     'Midnight': [AppColors.midnightStart, AppColors.midnightEnd],
     'Royal': [AppColors.royalStart, AppColors.royalEnd],
     'Sunset': [AppColors.sunsetStart, AppColors.sunsetEnd],
-    'Nebula': [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
-    'Aurora': [Color(0xFF00c6ff), Color(0xFF0072ff)],
-    'Emerald': [Color(0xFF11998e), Color(0xFF38ef7d)],
-    'Blush': [Color(0xFFdd5e89), Color(0xFFf7bb97)],
-    'Clean': [Color(0xFF4B6CB7), Color(0xFF182848)],
+    'Nebula': [const Color(0xFF8E2DE2), const Color(0xFF4A00E0)],
+    'Aurora': [const Color(0xFF00c6ff), const Color(0xFF0072ff)],
+    'Emerald': [const Color(0xFF11998e), const Color(0xFF38ef7d)],
+    'Blush': [const Color(0xFFdd5e89), const Color(0xFFf7bb97)],
+    'Clean': [const Color(0xFF4B6CB7), const Color(0xFF182848)],
     'Custom': [Colors.grey.shade800, Colors.black],
   };
 
