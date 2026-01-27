@@ -6,6 +6,8 @@ import '../../../home/presentation/views/main_screen.dart';
 import '../../../../core/services/force_update_service.dart';
 import '../views/login_view.dart';
 import '../views/splash_view.dart';
+import '../views/introduction_view.dart';
+import '../providers/onboarding_provider.dart';
 
 class AuthWrapper extends ConsumerStatefulWidget {
   const AuthWrapper({super.key});
@@ -26,6 +28,12 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    final hasSeenOnboarding = ref.watch(onboardingProvider);
+
+    if (!hasSeenOnboarding) {
+      return const IntroductionView();
+    }
+
     return StreamBuilder<User?>(
       stream: AuthService().onAuthStateChange,
       builder: (context, snapshot) {

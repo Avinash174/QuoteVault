@@ -63,3 +63,4 @@ flutter:
   assets:
     - .env
     - assets/icon/app_logo.png
+    - assets/onboarding/

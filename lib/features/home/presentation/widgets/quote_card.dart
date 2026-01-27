@@ -22,7 +22,7 @@ class QuoteCard extends ConsumerStatefulWidget {
 class _QuoteCardState extends ConsumerState<QuoteCard> {
   bool _isDeleting = false;
 
-  void _handleDelete() async {
+  Future<void> _handleDelete() async {
     // Confirm deletion with a fun dialog
     final confirmed = await showDialog<bool>(
       context: context,
@@ -65,13 +65,11 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
     final isFavorite = favorites.any(
       (q) => q.text == quote.text && q.author == quote.author,
     );
+    final isOwned =
+        quote.userId != null &&
+        FirebaseAuth.instance.currentUser?.uid == quote.userId;
 
-    return GestureDetector(
-      onLongPress:
-          (quote.userId != null &&
-              FirebaseAuth.instance.currentUser?.uid == quote.userId)
-          ? _handleDelete
-          : null,
+    Widget cardContent = GestureDetector(
       child:
           Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -203,6 +201,9 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
                   ],
                 ),
               )
+              .animate() // Entry animation
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: 0.1, end: 0)
               .animate(
                 target: _isDeleting ? 1 : 0,
                 onComplete: (controller) {
@@ -212,14 +213,8 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
                         .deleteQuote(quote);
                   }
                 },
-              )
-              .fadeIn(duration: 400.ms)
-              .slideY(begin: 0.1, end: 0)
-              .shake(
-                duration: 400.ms,
-                hz: 10,
-                curve: Curves.easeInOut,
-              ) // Shake on start of deletion
+              ) // Deletion animation
+              .shake(duration: 400.ms, hz: 10, curve: Curves.easeInOut)
               .tint(color: Colors.redAccent, end: 0.6, duration: 400.ms)
               .blur(
                 end: const Offset(10, 10),
@@ -233,6 +228,42 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
               )
               .fadeOut(duration: 600.ms),
     );
+
+    if (isOwned) {
+      return Dismissible(
+        key: ValueKey('dismiss_${quote.id}_${quote.text.hashCode}'),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.redAccent.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 24),
+          child:
+              const Icon(
+                    Icons.delete_sweep_rounded,
+                    color: Colors.redAccent,
+                    size: 32,
+                  )
+                  .animate(onPlay: (controller) => controller.repeat())
+                  .shimmer(duration: 1500.ms),
+        ),
+        confirmDismiss: (direction) async {
+          HapticFeedback.mediumImpact();
+          // Use the existing _handleDelete logic which includes the confirmation dialog
+          await _handleDelete();
+          // If _isDeleting is true, it means the user confirmed and the animation will handle the removal.
+          // We return false here so the Dismissible doesn't immediately remove the item,
+          // allowing our custom animation to play out.
+          return false;
+        },
+        child: cardContent,
+      );
+    }
+
+    return cardContent;
   }
 
   Widget _buildActionButton(

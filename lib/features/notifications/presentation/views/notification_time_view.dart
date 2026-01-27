@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../providers/notification_settings_viewmodel.dart';
 
 class NotificationTimeView extends ConsumerStatefulWidget {
@@ -239,36 +240,75 @@ class _NotificationTimeViewState extends ConsumerState<NotificationTimeView> {
 
               const SizedBox(height: 60),
 
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    ref
-                        .read(notificationSettingsViewModelProvider.notifier)
-                        .setNotificationTime(_selectedTime);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Notification preference saved!'),
+              Consumer(
+                builder: (context, ref, child) {
+                  final settingsState = ref.watch(
+                    notificationSettingsViewModelProvider,
+                  );
+                  final isLoading = settingsState.isLoading;
+
+                  return SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: isLoading
+                          ? null
+                          : () async {
+                              try {
+                                await ref
+                                    .read(
+                                      notificationSettingsViewModelProvider
+                                          .notifier,
+                                    )
+                                    .setNotificationTime(_selectedTime);
+
+                                if (context.mounted) {
+                                  SnackbarUtils.showSuccess(
+                                    context,
+                                    'Preference Saved',
+                                    'Your notification time is now set to ${_selectedTime.format(context)}.',
+                                  );
+                                  Navigator.pop(context);
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  SnackbarUtils.showError(
+                                    context,
+                                    'Save Failed',
+                                    'Could not save your notification preference. Please try again.',
+                                  );
+                                }
+                              }
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        disabledBackgroundColor: AppColors.accent.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
-                    );
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Save Preference',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
-                  ),
-                  child: const Text(
-                    'Save Preference',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 40),
             ],
