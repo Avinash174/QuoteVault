@@ -87,24 +87,18 @@ class ApiService {
             _lastQuotesCacheTime = DateTime.now();
             return quotes;
           }
-          return [];
+          throw Exception('Unexpected data format from quotes server');
         }
       } else if (response.statusCode == 429) {
-        developer.log(
-          'Rate limit hit (429), returning cache',
-          name: 'ThoughtVault.API',
+        throw Exception(
+          'Rate limit exceeded. Please try again in a few minutes.',
         );
-        return _cachedQuotes ?? [];
       } else {
-        developer.log(
-          'API Error: ${response.statusCode}',
-          name: 'ThoughtVault.API',
-        );
-        return _cachedQuotes ?? [];
+        throw Exception('Server returned an error: ${response.statusCode}');
       }
     } catch (e) {
-      developer.log('API Unexpected Error', name: 'ThoughtVault.API', error: e);
-      return [];
+      developer.log('API Request Failed', name: 'ThoughtVault.API', error: e);
+      rethrow;
     }
   }
 
@@ -139,15 +133,11 @@ class ApiService {
           });
         }).toList();
       } else {
-        developer.log(
-          'API Error: ${response.statusCode}',
-          name: 'ThoughtVault.API',
-        );
-        return [];
+        throw Exception('Search failed: ${response.statusCode}');
       }
     } catch (e) {
-      developer.log('API Unexpected Error', name: 'ThoughtVault.API', error: e);
-      return [];
+      developer.log('API Search Failed', name: 'ThoughtVault.API', error: e);
+      rethrow;
     }
   }
 
@@ -185,30 +175,17 @@ class ApiService {
         _lastCacheTime = DateTime.now();
         return _cachedQod!;
       } else if (response.statusCode == 429) {
-        developer.log(
-          'Rate limit hit (429), returning fallback/cache',
-          name: 'ThoughtVault.API',
-        );
-        if (_cachedQod != null) return _cachedQod!;
-        // Hardcoded fallback if no cache
-        return const Quote(
-          text:
-              "The only limit to our realization of tomorrow is our doubts of today.",
-          author: "Franklin D. Roosevelt",
-          categories: ["Inspiration"],
-        );
+        throw Exception('Rate limit exceeded for Daily Inspiration.');
       } else {
-        throw Exception('Server Error: ${response.statusCode}');
+        throw Exception('Server error: ${response.statusCode}');
       }
     } catch (e) {
-      developer.log('API Unexpected Error: $e', name: 'ThoughtVault.API');
-      if (_cachedQod != null) return _cachedQod!;
-      return const Quote(
-        text:
-            "The only limit to our realization of tomorrow is our doubts of today.",
-        author: "Franklin D. Roosevelt",
-        categories: ["Inspiration"],
+      developer.log(
+        'API QOD Request Failed',
+        name: 'ThoughtVault.API',
+        error: e,
       );
+      rethrow;
     }
   }
 

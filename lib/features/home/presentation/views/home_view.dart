@@ -9,6 +9,9 @@ import '../../../../core/widgets/banner_ad_widget.dart';
 import 'search_screen.dart';
 import '../../../notifications/presentation/providers/notification_settings_viewmodel.dart';
 import 'quote_detail_view.dart';
+import '../../../../core/widgets/empty_state_view.dart';
+import '../../../../core/widgets/no_internet_view.dart';
+import '../../../../features/home/presentation/views/create_quote_view.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -239,6 +242,22 @@ class HomeView extends ConsumerWidget {
             // List
             quotesAsync.when(
               data: (quotes) {
+                if (quotes.isEmpty) {
+                  return SliverFillRemaining(
+                    child: EmptyStateView(
+                      onAction: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CreateQuoteView(),
+                          ),
+                        );
+                      },
+                      actionLabel: "Be the first to share",
+                    ),
+                  );
+                }
+
                 const adInterval = 5;
                 final totalItems =
                     quotes.length + (quotes.length / adInterval).floor();
@@ -290,13 +309,31 @@ class HomeView extends ConsumerWidget {
                   childCount: 6,
                 ),
               ),
-              error: (error, stack) => SliverFillRemaining(
-                child: ErrorView(
-                  message: error.toString(),
-                  onRetry: () =>
-                      ref.read(quoteViewModelProvider.notifier).refresh(),
-                ),
-              ),
+              error: (error, stack) {
+                final errorStr = error.toString().toLowerCase();
+                final isOffline =
+                    errorStr.contains('network') ||
+                    errorStr.contains('connectivity') ||
+                    errorStr.contains('internet') ||
+                    errorStr.contains('socketexception');
+
+                if (isOffline) {
+                  return SliverFillRemaining(
+                    child: NoInternetView(
+                      onRetry: () =>
+                          ref.read(quoteViewModelProvider.notifier).refresh(),
+                    ),
+                  );
+                }
+
+                return SliverFillRemaining(
+                  child: ErrorView(
+                    message: error.toString(),
+                    onRetry: () =>
+                        ref.read(quoteViewModelProvider.notifier).refresh(),
+                  ),
+                );
+              },
             ),
 
             const SliverPadding(padding: EdgeInsets.only(bottom: 80)),

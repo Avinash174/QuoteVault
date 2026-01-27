@@ -169,7 +169,7 @@ class AdService {
     if (context != null && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Loading Ad... Please wait a moment'),
+          content: Text('Preparing... Please wait a moment'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -220,7 +220,7 @@ class AdService {
         if (context != null && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Reward Granted! You can now close the ad.'),
+              content: Text('Verification Complete! You can now share.'),
               backgroundColor: Colors.green,
             ),
           );
