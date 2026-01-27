@@ -22,13 +22,13 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.avinashmagar.thoughtvault"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     defaultConfig {
         applicationId = "com.avinashmagar.thoughtvault"
         minSdk = flutter.minSdkVersion
-        targetSdk = 33
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

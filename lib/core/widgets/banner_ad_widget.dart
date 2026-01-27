@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:developer' as developer;
 import '../services/ad_service.dart';
 
 class BannerAdWidget extends StatefulWidget {
@@ -22,6 +23,7 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   void _loadAd() {
     _bannerAd = AdService().createBannerAd(
       onAdLoaded: (ad) {
+        developer.log('BannerAd loaded', name: 'ThoughtVault.Ads');
         if (mounted) {
           setState(() {
             _isLoaded = true;
@@ -29,7 +31,10 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
         }
       },
       onAdFailedToLoad: (ad, error) {
-        debugPrint('BannerAd failed to load: $error');
+        developer.log(
+          'BannerAd failed to load: ${error.message} (Code: ${error.code})',
+          name: 'ThoughtVault.Ads',
+        );
         if (mounted) {
           setState(() {
             _isLoaded = false;

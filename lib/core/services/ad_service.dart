@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:developer' as developer;
 
 class AdService {
   static final AdService _instance = AdService._internal();
@@ -54,8 +56,10 @@ class AdService {
 
   RewardedAd? _rewardedAd;
   bool _isRewardedAdLoading = false;
+  bool _isAdShowing = false;
 
   Future<void> init() async {
+    developer.log('Initializing MobileAds...', name: 'ThoughtVault.Ads');
     await MobileAds.instance.initialize();
     loadRewardedAd();
   }
@@ -64,16 +68,28 @@ class AdService {
     if (_isRewardedAdLoading) return;
     _isRewardedAdLoading = true;
 
+    developer.log(
+      'Loading rewarded ad: $rewardedAdUnitId',
+      name: 'ThoughtVault.Ads',
+    );
+
     RewardedAd.load(
       adUnitId: rewardedAdUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
+          developer.log(
+            'RewardedAd loaded successfully',
+            name: 'ThoughtVault.Ads',
+          );
           _rewardedAd = ad;
           _isRewardedAdLoading = false;
         },
         onAdFailedToLoad: (error) {
-          debugPrint('RewardedAd failed to load: $error');
+          developer.log(
+            'RewardedAd failed to load: ${error.message} (Code: ${error.code})',
+            name: 'ThoughtVault.Ads',
+          );
           _rewardedAd = null;
           _isRewardedAdLoading = false;
         },
@@ -86,22 +102,54 @@ class AdService {
     required VoidCallback onUserEarnedReward,
   }) {
     if (_rewardedAd == null) {
-      debugPrint('Warning: Rewarded ad not ready. Proceeding without ad.');
+      developer.log(
+        'Warning: Rewarded ad not ready.',
+        name: 'ThoughtVault.Ads',
+      );
       onUserEarnedReward();
       loadRewardedAd();
       return;
     }
 
+    if (_isAdShowing) {
+      developer.log(
+        'Warning: Ad is already showing.',
+        name: 'ThoughtVault.Ads',
+      );
+      return;
+    }
+
+    _isAdShowing = true;
+    bool rewardEarned = false;
+
     _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        developer.log(
+          'RewardedAd showed successfully',
+          name: 'ThoughtVault.Ads',
+        );
+      },
       onAdDismissedFullScreenContent: (ad) {
+        developer.log('RewardedAd dismissed', name: 'ThoughtVault.Ads');
         ad.dispose();
         _rewardedAd = null;
-        onAdDismissed();
+        _isAdShowing = false;
+
+        // Only call dismissed if reward wasn't already handled
+        // or let the UI handle the state.
+        if (!rewardEarned) {
+          onAdDismissed();
+        }
         loadRewardedAd();
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
+        developer.log(
+          'RewardedAd failed to show: ${error.message}',
+          name: 'ThoughtVault.Ads',
+        );
         ad.dispose();
         _rewardedAd = null;
+        _isAdShowing = false;
         onAdDismissed();
         loadRewardedAd();
       },
@@ -109,6 +157,11 @@ class AdService {
 
     _rewardedAd!.show(
       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+        developer.log(
+          'User earned reward: ${reward.amount} ${reward.type}',
+          name: 'ThoughtVault.Ads',
+        );
+        rewardEarned = true;
         onUserEarnedReward();
       },
     );
