@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart' as sp;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/services/ad_service.dart';
 import '../../../../data/models/quote_model.dart';
@@ -76,8 +77,10 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
           }
         } catch (e) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error generating image: $e')),
+            SnackbarUtils.showError(
+              context,
+              'Error',
+              'Error generating image: $e',
             );
           }
         }

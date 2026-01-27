@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'dart:developer' as developer;
+import '../utils/snackbar_utils.dart';
 
 class AdService {
   static final AdService _instance = AdService._internal();
@@ -167,11 +168,10 @@ class AdService {
 
     // Optional user feedback before ad starts
     if (context != null && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Preparing... Please wait a moment'),
-          duration: Duration(seconds: 2),
-        ),
+      SnackbarUtils.showHelp(
+        context,
+        'Preparing Ad',
+        'Please wait a moment...',
       );
     }
 
@@ -218,11 +218,10 @@ class AdService {
         rewardEarned = true;
 
         if (context != null && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verification Complete! You can now share.'),
-              backgroundColor: Colors.green,
-            ),
+          SnackbarUtils.showSuccess(
+            context,
+            'Verification Complete',
+            'You can now share.',
           );
         }
 

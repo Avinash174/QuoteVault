@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/quote_model.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../providers/collection_viewmodel.dart';
 
 class AddToCollectionSheet extends ConsumerWidget {
@@ -110,24 +111,19 @@ class AddToCollectionSheet extends ConsumerWidget {
                                       );
                                   if (context.mounted) {
                                     Navigator.pop(context);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Added to ${collection.name}',
-                                        ),
-                                        backgroundColor: AppColors.success,
-                                      ),
+                                    Navigator.pop(context);
+                                    SnackbarUtils.showSuccess(
+                                      context,
+                                      'Added to Collection',
+                                      'Quote added to ${collection.name}',
                                     );
                                   }
                                 } catch (e) {
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Failed to add to collection: $e',
-                                        ),
-                                        backgroundColor: Colors.red,
-                                      ),
+                                    SnackbarUtils.showError(
+                                      context,
+                                      'Error',
+                                      'Failed to add to collection: $e',
                                     );
                                   }
                                 }
@@ -189,20 +185,19 @@ class AddToCollectionSheet extends ConsumerWidget {
                       .createCollection(name);
                   if (context.mounted) {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Collection "$name" created'),
-                        backgroundColor: AppColors.success,
-                      ),
+                    Navigator.pop(context);
+                    SnackbarUtils.showSuccess(
+                      context,
+                      'Collection Created',
+                      'Collection "$name" created successfully',
                     );
                   }
                 } catch (e) {
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Failed to create collection: $e'),
-                        backgroundColor: Colors.red,
-                      ),
+                    SnackbarUtils.showError(
+                      context,
+                      'Error',
+                      'Failed to create collection: $e',
                     );
                   }
                 }

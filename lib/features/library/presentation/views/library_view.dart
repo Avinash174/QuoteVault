@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../providers/library_viewmodel.dart';
 import '../providers/collection_viewmodel.dart';
 import 'collection_detail_view.dart';
@@ -116,13 +117,10 @@ class _LibraryViewState extends ConsumerState<LibraryView>
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Deleted $count ${count > 1 ? "collections" : "collection"}',
-            ),
-            behavior: SnackBarBehavior.floating,
-          ),
+        SnackbarUtils.showSuccess(
+          context,
+          'Deleted Successfully',
+          'Deleted $count ${count > 1 ? "collections" : "collection"}',
         );
       }
     }

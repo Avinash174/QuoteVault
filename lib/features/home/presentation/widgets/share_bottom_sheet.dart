@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart' as sp;
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/services/ad_service.dart';
 import '../../../../data/models/quote_model.dart';
 import '../views/quote_generator_view.dart';
@@ -33,12 +34,10 @@ class ShareBottomSheet extends StatelessWidget {
     );
     if (context.mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Quote copied to clipboard!'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
+      SnackbarUtils.showSuccess(
+        context,
+        'Copied',
+        'Quote copied to clipboard!',
       );
     }
   }

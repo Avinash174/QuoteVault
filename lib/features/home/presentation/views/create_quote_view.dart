@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/widgets/banner_ad_widget.dart';
@@ -34,8 +35,10 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('You must be logged in to post')),
+          SnackbarUtils.showWarning(
+            context,
+            'Login Required',
+            'You must be logged in to post',
           );
         }
         return;
@@ -55,21 +58,19 @@ class _CreateQuoteViewState extends State<CreateQuoteView> {
       await FirestoreService().createCommunityQuote(quoteData);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Quote published! It will appear in the feed soon.'),
-            backgroundColor: AppColors.success,
-          ),
+        SnackbarUtils.showSuccess(
+          context,
+          'Quote Published',
+          'It will appear in the feed soon.',
         );
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to publish: $e'),
-            backgroundColor: AppColors.error,
-          ),
+        SnackbarUtils.showError(
+          context,
+          'Publish Failed',
+          'Failed to publish: $e',
         );
       }
     } finally {
