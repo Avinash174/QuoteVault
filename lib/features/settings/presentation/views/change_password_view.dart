@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import 'dart:developer' as developer;
 
 class ChangePasswordView extends StatefulWidget {
@@ -32,19 +33,20 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
       if (user != null) {
         await user.updatePassword(_newPasswordController.text);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Password updated successfully')),
+          SnackbarUtils.showSuccess(
+            context,
+            'Success',
+            'Password updated successfully',
           );
           Navigator.pop(context);
         }
       }
     } on FirebaseAuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message ?? 'Failed to update password'),
-            backgroundColor: Colors.red,
-          ),
+        SnackbarUtils.showError(
+          context,
+          'Error',
+          e.message ?? 'Failed to update password',
         );
       }
       developer.log(

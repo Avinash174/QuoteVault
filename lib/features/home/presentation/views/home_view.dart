@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../widgets/quote_card.dart';
 import '../widgets/quote_card_shimmer.dart';
 import '../providers/quote_viewmodel.dart';
@@ -30,8 +31,10 @@ class HomeView extends ConsumerWidget {
               e,
             ) {
               if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Failed to load more quotes: $e')),
+                SnackbarUtils.showError(
+                  context,
+                  'Error',
+                  'Failed to load more quotes: $e',
                 );
               }
             });
