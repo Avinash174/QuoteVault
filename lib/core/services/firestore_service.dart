@@ -398,4 +398,21 @@ class FirestoreService {
       return [];
     }
   }
+
+  Future<void> deleteCommunityQuote(String quoteId) async {
+    try {
+      await _db.collection('community_quotes').doc(quoteId).delete();
+      developer.log(
+        'Community quote deleted: $quoteId',
+        name: 'ThoughtVault.Firestore',
+      );
+    } catch (e) {
+      developer.log(
+        'Error deleting community quote',
+        name: 'ThoughtVault.Firestore',
+        error: e,
+      );
+      rethrow;
+    }
+  }
 }

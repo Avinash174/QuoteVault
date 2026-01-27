@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' as sp;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/ad_service.dart';
 import '../../../../data/models/quote_model.dart';
@@ -13,11 +13,12 @@ class ShareBottomSheet extends StatelessWidget {
 
   void _shareAsText(BuildContext context) {
     AdService().showRewardedAd(
+      context: context,
       onAdDismissed: () {
         // Nothing special to do when dismissed without reward
       },
       onUserEarnedReward: () {
-        Share.share('"${quote.text}" - ${quote.author}');
+        sp.Share.share('"${quote.text}" - ${quote.author}');
       },
     );
     Navigator.pop(context);
@@ -42,6 +43,7 @@ class ShareBottomSheet extends StatelessWidget {
   void _generateQuoteCard(BuildContext context) {
     final navigator = Navigator.of(context);
     AdService().showRewardedAd(
+      context: context,
       onAdDismissed: () {
         // Optional: still navigate or allow access even if dismissed?
         // Usually, to be user friendly, we allow it or show another ad.
@@ -111,7 +113,7 @@ class ShareBottomSheet extends StatelessWidget {
               color: Theme.of(context).cardTheme.color,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Theme.of(context).dividerColor.withOpacity(0.1),
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
               ),
             ),
             child: Column(
@@ -223,7 +225,7 @@ class ShareBottomSheet extends StatelessWidget {
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Theme.of(context).dividerColor.withOpacity(0.1),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
         ),
       ),
       child: ListTile(

@@ -39,7 +39,7 @@ final selectedCategoryProvider =
     );
 
 typedef _$SelectedCategory = AutoDisposeNotifier<String>;
-String _$quoteViewModelHash() => r'837291c5569334faf559b1e7678db581afaf933d';
+String _$quoteViewModelHash() => r'9e6b84d310109e67cd6bfaad27b5797a430eb4f1';
 
 /// See also [QuoteViewModel].
 @ProviderFor(QuoteViewModel)

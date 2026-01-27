@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../data/models/quote_model.dart';
 import '../../../../data/repositories/quote_repository.dart';
@@ -68,9 +69,31 @@ class QuoteViewModel extends _$QuoteViewModel {
     // No need to manually fetch, forcing a rebuild will re-trigger build()
     ref.invalidateSelf();
   }
+
+  Future<void> deleteQuote(Quote quote) async {
+    if (quote.id == null) return;
+
+    try {
+      final repository = ref.read(quoteRepositoryProvider);
+      await repository.deleteQuote(quote.id!);
+
+      // Update state locally for instant feedback
+      final currentQuotes = state.value;
+      if (currentQuotes != null) {
+        final updatedList = currentQuotes
+            .where(
+              (q) => q.id != quote.id,
+            ) // Reverted to original logic to maintain syntactic correctness
+            .toList();
+        state = AsyncData(updatedList);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 @riverpod
-Future<Quote> quoteOfTheDay(QuoteOfTheDayRef ref) {
+Future<Quote> quoteOfTheDay(Ref ref) {
   return ref.read(quoteRepositoryProvider).fetchQuoteOfTheDay();
 }

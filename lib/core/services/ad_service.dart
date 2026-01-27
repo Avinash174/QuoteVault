@@ -57,19 +57,24 @@ class AdService {
   RewardedAd? _rewardedAd;
   bool _isRewardedAdLoading = false;
   bool _isAdShowing = false;
+  int _rewardedRetryAttempt = 0;
+
+  BannerAd? _preloadedBannerAd;
+  bool _isPreloadingBanner = false;
 
   Future<void> init() async {
     developer.log('Initializing MobileAds...', name: 'ThoughtVault.Ads');
     await MobileAds.instance.initialize();
     loadRewardedAd();
+    preLoadBannerAd();
   }
 
   void loadRewardedAd() {
-    if (_isRewardedAdLoading) return;
+    if (_isRewardedAdLoading || (_rewardedAd != null)) return;
     _isRewardedAdLoading = true;
 
     developer.log(
-      'Loading rewarded ad: $rewardedAdUnitId',
+      'Loading rewarded ad: $rewardedAdUnitId (Attempt: ${_rewardedRetryAttempt + 1})',
       name: 'ThoughtVault.Ads',
     );
 
@@ -84,6 +89,7 @@ class AdService {
           );
           _rewardedAd = ad;
           _isRewardedAdLoading = false;
+          _rewardedRetryAttempt = 0;
         },
         onAdFailedToLoad: (error) {
           developer.log(
@@ -92,12 +98,52 @@ class AdService {
           );
           _rewardedAd = null;
           _isRewardedAdLoading = false;
+
+          // Exponential backoff for retries
+          _rewardedRetryAttempt++;
+          final retryDelay = Duration(
+            seconds: (1 << _rewardedRetryAttempt).clamp(2, 60),
+          );
+          developer.log(
+            'Retrying rewarded ad load in ${retryDelay.inSeconds}s',
+            name: 'ThoughtVault.Ads',
+          );
+          Future.delayed(retryDelay, loadRewardedAd);
         },
       ),
     );
   }
 
+  void preLoadBannerAd() {
+    if (_isPreloadingBanner || _preloadedBannerAd != null) return;
+    _isPreloadingBanner = true;
+
+    developer.log('Pre-loading banner ad...', name: 'ThoughtVault.Ads');
+    _preloadedBannerAd = createBannerAd(
+      onAdLoaded: (ad) {
+        developer.log('Pre-loaded banner ad ready', name: 'ThoughtVault.Ads');
+        _isPreloadingBanner = false;
+      },
+      onAdFailedToLoad: (ad, error) {
+        developer.log(
+          'Pre-loaded banner ad failed: ${error.message}',
+          name: 'ThoughtVault.Ads',
+        );
+        _isPreloadingBanner = false;
+        _preloadedBannerAd = null;
+      },
+    )..load();
+  }
+
+  BannerAd? getPreloadedBannerAd() {
+    final ad = _preloadedBannerAd;
+    _preloadedBannerAd = null; // Consume the ad
+    preLoadBannerAd(); // Start pre-loading the next one
+    return ad;
+  }
+
   void showRewardedAd({
+    BuildContext? context,
     required VoidCallback onAdDismissed,
     required VoidCallback onUserEarnedReward,
   }) {
@@ -119,6 +165,16 @@ class AdService {
       return;
     }
 
+    // Optional user feedback before ad starts
+    if (context != null && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Loading Ad... Please wait a moment'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+
     _isAdShowing = true;
     bool rewardEarned = false;
 
@@ -135,8 +191,6 @@ class AdService {
         _rewardedAd = null;
         _isAdShowing = false;
 
-        // Only call dismissed if reward wasn't already handled
-        // or let the UI handle the state.
         if (!rewardEarned) {
           onAdDismissed();
         }
@@ -162,9 +216,30 @@ class AdService {
           name: 'ThoughtVault.Ads',
         );
         rewardEarned = true;
+
+        if (context != null && context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Reward Granted! You can now close the ad.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
         onUserEarnedReward();
       },
     );
+
+    // Safety reset in case fullScreenContentCallback is never called (edge case)
+    Future.delayed(const Duration(seconds: 60), () {
+      if (_isAdShowing) {
+        developer.log(
+          'Safety reset: Ad was hanging.',
+          name: 'ThoughtVault.Ads',
+        );
+        _isAdShowing = false;
+      }
+    });
   }
 
   BannerAd createBannerAd({

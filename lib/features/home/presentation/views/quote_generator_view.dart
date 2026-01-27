@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' as sp;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -47,6 +47,7 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
 
   void _shareImage() async {
     AdService().showRewardedAd(
+      context: context,
       onAdDismissed: () {
         // ad failed or dismissed
       },
@@ -61,8 +62,8 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
             await imagePath.writeAsBytes(image);
 
             // Share the file
-            await Share.shareXFiles([
-              XFile(imagePath.path),
+            await sp.Share.shareXFiles([
+              sp.XFile(imagePath.path),
             ], text: 'Check out this quote from ThoughtVault!');
           }
         } catch (e) {

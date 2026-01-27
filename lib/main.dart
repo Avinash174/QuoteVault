@@ -15,8 +15,8 @@ import 'core/services/ad_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  print("Handling a background message: ${message.messageId}");
+  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // print("Handling a background message: ${message.messageId}");
 }
 
 void main() {

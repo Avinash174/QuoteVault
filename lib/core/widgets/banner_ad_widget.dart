@@ -21,6 +21,21 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   }
 
   void _loadAd() {
+    // Try to get a pre-loaded ad first
+    final preloadedAd = AdService().getPreloadedBannerAd();
+    if (preloadedAd != null) {
+      developer.log('Using pre-loaded banner ad', name: 'ThoughtVault.Ads');
+      setState(() {
+        _bannerAd = preloadedAd;
+        _isLoaded = true;
+      });
+      return;
+    }
+
+    developer.log(
+      'No pre-loaded ad available, starting new load',
+      name: 'ThoughtVault.Ads',
+    );
     _bannerAd = AdService().createBannerAd(
       onAdLoaded: (ad) {
         developer.log('BannerAd loaded', name: 'ThoughtVault.Ads');

@@ -26,6 +26,8 @@ mixin _$Quote {
   String get author => throw _privateConstructorUsedError;
   String get work => throw _privateConstructorUsedError;
   List<String> get categories => throw _privateConstructorUsedError;
+  String? get id => throw _privateConstructorUsedError; // Firestore Document ID
+  String? get userId => throw _privateConstructorUsedError;
 
   /// Serializes this Quote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -46,6 +48,8 @@ abstract class $QuoteCopyWith<$Res> {
     String author,
     String work,
     List<String> categories,
+    String? id,
+    String? userId,
   });
 }
 
@@ -68,6 +72,8 @@ class _$QuoteCopyWithImpl<$Res, $Val extends Quote>
     Object? author = null,
     Object? work = null,
     Object? categories = null,
+    Object? id = freezed,
+    Object? userId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -87,6 +93,14 @@ class _$QuoteCopyWithImpl<$Res, $Val extends Quote>
                 ? _value.categories
                 : categories // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            id: freezed == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            userId: freezed == userId
+                ? _value.userId
+                : userId // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -106,6 +120,8 @@ abstract class _$$QuoteImplCopyWith<$Res> implements $QuoteCopyWith<$Res> {
     String author,
     String work,
     List<String> categories,
+    String? id,
+    String? userId,
   });
 }
 
@@ -127,6 +143,8 @@ class __$$QuoteImplCopyWithImpl<$Res>
     Object? author = null,
     Object? work = null,
     Object? categories = null,
+    Object? id = freezed,
+    Object? userId = freezed,
   }) {
     return _then(
       _$QuoteImpl(
@@ -146,6 +164,14 @@ class __$$QuoteImplCopyWithImpl<$Res>
             ? _value._categories
             : categories // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        id: freezed == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        userId: freezed == userId
+            ? _value.userId
+            : userId // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -159,6 +185,8 @@ class _$QuoteImpl implements _Quote {
     required this.author,
     this.work = '',
     final List<String> categories = const [],
+    this.id,
+    this.userId,
   }) : _categories = categories;
 
   factory _$QuoteImpl.fromJson(Map<String, dynamic> json) =>
@@ -182,8 +210,14 @@ class _$QuoteImpl implements _Quote {
   }
 
   @override
+  final String? id;
+  // Firestore Document ID
+  @override
+  final String? userId;
+
+  @override
   String toString() {
-    return 'Quote(text: $text, author: $author, work: $work, categories: $categories)';
+    return 'Quote(text: $text, author: $author, work: $work, categories: $categories, id: $id, userId: $userId)';
   }
 
   @override
@@ -197,7 +231,9 @@ class _$QuoteImpl implements _Quote {
             const DeepCollectionEquality().equals(
               other._categories,
               _categories,
-            ));
+            ) &&
+            (identical(other.id, id) || other.id == id) &&
+            (identical(other.userId, userId) || other.userId == userId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -208,6 +244,8 @@ class _$QuoteImpl implements _Quote {
     author,
     work,
     const DeepCollectionEquality().hash(_categories),
+    id,
+    userId,
   );
 
   /// Create a copy of Quote
@@ -230,6 +268,8 @@ abstract class _Quote implements Quote {
     required final String author,
     final String work,
     final List<String> categories,
+    final String? id,
+    final String? userId,
   }) = _$QuoteImpl;
 
   factory _Quote.fromJson(Map<String, dynamic> json) = _$QuoteImpl.fromJson;
@@ -243,6 +283,10 @@ abstract class _Quote implements Quote {
   String get work;
   @override
   List<String> get categories;
+  @override
+  String? get id; // Firestore Document ID
+  @override
+  String? get userId;
 
   /// Create a copy of Quote
   /// with the given fields replaced by the non-null parameter values.

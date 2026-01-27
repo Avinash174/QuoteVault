@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/quote_model.dart';
 import '../services/api_service.dart';
@@ -6,7 +7,7 @@ import '../../core/services/firestore_service.dart';
 part 'quote_repository.g.dart';
 
 @riverpod
-QuoteRepository quoteRepository(QuoteRepositoryRef ref) {
+QuoteRepository quoteRepository(Ref ref) {
   return QuoteRepository(ApiService());
 }
 
@@ -40,6 +41,8 @@ class QuoteRepository {
         );
         final communityQuotes = communityData.map((data) {
           return Quote(
+            id: data['id'],
+            userId: data['userId'],
             text: data['quote'] ?? '',
             author: data['author'] ?? 'Unknown',
             categories: ['Community'],
@@ -77,6 +80,14 @@ class QuoteRepository {
       return await _apiService.searchQuotes(query);
     } catch (e) {
       throw Exception('Failed to search quotes: $e');
+    }
+  }
+
+  Future<void> deleteQuote(String quoteId) async {
+    try {
+      await _firestoreService.deleteCommunityQuote(quoteId);
+    } catch (e) {
+      throw Exception('Failed to delete quote: $e');
     }
   }
 }

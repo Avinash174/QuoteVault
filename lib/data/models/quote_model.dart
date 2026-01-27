@@ -10,6 +10,8 @@ class Quote with _$Quote {
     required String author,
     @Default('') String work,
     @Default([]) List<String> categories,
+    String? id, // Firestore Document ID
+    String? userId, // Creator's UID
   }) = _Quote;
 
   factory Quote.fromJson(Map<String, dynamic> json) => _$QuoteFromJson(json);

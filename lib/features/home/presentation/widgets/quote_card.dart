@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../library/presentation/providers/library_viewmodel.dart';
+import '../providers/quote_viewmodel.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/models/quote_model.dart';
 import '../../../library/presentation/widgets/add_to_collection_sheet.dart';
@@ -32,7 +34,7 @@ class QuoteCard extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.03),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -44,14 +46,14 @@ class QuoteCard extends ConsumerWidget {
           Icon(
             Icons.format_quote,
             size: 32,
-            color: AppColors.accent.withOpacity(0.5),
+            color: AppColors.accent.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 12),
           if (quote.categories.contains('Community')) ...[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
+                color: AppColors.accent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: const Text(
@@ -133,6 +135,47 @@ class QuoteCard extends ConsumerWidget {
                       );
                     },
                   ),
+                  if (quote.userId != null &&
+                      FirebaseAuth.instance.currentUser?.uid ==
+                          quote.userId) ...[
+                    const SizedBox(width: 8),
+                    _buildActionButton(
+                      context,
+                      icon: Icons.delete_outline,
+                      isDark: isDark,
+                      color: Colors.redAccent.withValues(alpha: 0.8),
+                      onPressed: () {
+                        // Confirm deletion
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Quote'),
+                            content: const Text(
+                              'Are you sure you want to delete this quote?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('CANCEL'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  ref
+                                      .read(quoteViewModelProvider.notifier)
+                                      .deleteQuote(quote);
+                                },
+                                child: const Text(
+                                  'DELETE',
+                                  style: TextStyle(color: Colors.redAccent),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -152,8 +195,8 @@ class QuoteCard extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withOpacity(0.08)
-            : AppColors.accent.withOpacity(0.05),
+            ? Colors.white.withValues(alpha: 0.08)
+            : AppColors.accent.withValues(alpha: 0.05),
         shape: BoxShape.circle,
       ),
       child: IconButton(

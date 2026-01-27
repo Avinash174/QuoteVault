@@ -5,6 +5,7 @@ import '../../../../core/services/auth_service.dart';
 import '../../../home/presentation/views/main_screen.dart';
 import '../../../../core/services/force_update_service.dart';
 import '../views/login_view.dart';
+import '../views/splash_view.dart';
 
 class AuthWrapper extends ConsumerStatefulWidget {
   const AuthWrapper({super.key});
@@ -29,9 +30,7 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
       stream: AuthService().onAuthStateChange,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const SplashView();
         }
 
         if (snapshot.hasData && snapshot.data != null) {

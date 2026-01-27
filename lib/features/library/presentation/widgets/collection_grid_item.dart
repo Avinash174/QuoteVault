@@ -77,7 +77,7 @@ class CollectionGridItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         transform: isSelected || isSelectionMode
-            ? Matrix4.identity().scaled(0.95)
+            ? Matrix4.diagonal3Values(0.95, 0.95, 1.0)
             : Matrix4.identity(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +92,7 @@ class CollectionGridItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: cardColor.withOpacity(0.3),
+                          color: cardColor.withValues(alpha: 0.3),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -115,7 +115,7 @@ class CollectionGridItem extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
+                              color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(

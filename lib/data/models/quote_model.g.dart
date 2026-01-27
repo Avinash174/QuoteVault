@@ -15,6 +15,8 @@ _$QuoteImpl _$$QuoteImplFromJson(Map<String, dynamic> json) => _$QuoteImpl(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  id: json['id'] as String?,
+  userId: json['userId'] as String?,
 );
 
 Map<String, dynamic> _$$QuoteImplToJson(_$QuoteImpl instance) =>
@@ -23,4 +25,6 @@ Map<String, dynamic> _$$QuoteImplToJson(_$QuoteImpl instance) =>
       'author': instance.author,
       'work': instance.work,
       'categories': instance.categories,
+      'id': instance.id,
+      'userId': instance.userId,
     };
