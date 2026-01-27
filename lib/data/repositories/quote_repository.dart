@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../models/quote_model.dart';
 import '../services/api_service.dart';
+import '../../core/services/firestore_service.dart';
 
 part 'quote_repository.g.dart';
 
@@ -11,6 +12,7 @@ QuoteRepository quoteRepository(QuoteRepositoryRef ref) {
 
 class QuoteRepository {
   final ApiService _apiService;
+  final FirestoreService _firestoreService = FirestoreService();
 
   QuoteRepository(this._apiService);
 
@@ -20,13 +22,35 @@ class QuoteRepository {
     String? category,
   }) async {
     try {
-      // Calculate skip based on page and limit
+      final bool isDefaultCategory =
+          category == null || category.isEmpty || category == 'All Quotes';
+
+      // Fetch from API
       final skip = (page - 1) * limit;
-      return await _apiService.getQuotes(
+      final apiQuotes = await _apiService.getQuotes(
         limit: limit,
         skip: skip,
         category: category,
       );
+
+      // Only merge community quotes if we are on the first page of "All Quotes"
+      if (page == 1 && isDefaultCategory) {
+        final communityData = await _firestoreService.getCommunityQuotes(
+          limit: 5,
+        );
+        final communityQuotes = communityData.map((data) {
+          return Quote(
+            text: data['quote'] ?? '',
+            author: data['author'] ?? 'Unknown',
+            categories: ['Community'],
+          );
+        }).toList();
+
+        // Merge community quotes at the beginning
+        return [...communityQuotes, ...apiQuotes];
+      }
+
+      return apiQuotes;
     } catch (e) {
       throw Exception('Failed to fetch quotes: $e');
     }

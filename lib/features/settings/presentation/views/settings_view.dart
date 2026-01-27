@@ -4,6 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/services/auth_provider.dart';
 import '../../../notifications/presentation/views/notification_time_view.dart';
+import '../../../notifications/presentation/providers/notification_settings_viewmodel.dart';
 import '../../../auth/presentation/views/login_view.dart';
 import '../../../../core/services/auth_service.dart';
 import 'change_password_view.dart';
@@ -21,8 +22,7 @@ class SettingsView extends ConsumerStatefulWidget {
 }
 
 class _SettingsViewState extends ConsumerState<SettingsView> {
-  // Local state for toggles until we wire up ViewModels
-  bool _dailyInspiration = true;
+  // Local state for version
   String _version = '';
 
   @override
@@ -68,13 +68,31 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
 
           const SizedBox(height: 24),
           _buildSectionHeader('NOTIFICATIONS'),
-          _buildToggleTile(
-            icon: Icons.notifications_active,
-            iconColor: Colors.amber,
-            title: 'Daily Inspiration',
-            value: _dailyInspiration,
-            onChanged: (val) => setState(() => _dailyInspiration = val),
-          ),
+          ref
+              .watch(notificationsEnabledProvider)
+              .when(
+                data: (enabled) => _buildToggleTile(
+                  icon: Icons.notifications_active,
+                  iconColor: Colors.amber,
+                  title: 'Daily Inspiration',
+                  value: enabled,
+                  onChanged: (val) {
+                    ref
+                        .read(notificationSettingsViewModelProvider.notifier)
+                        .toggleNotifications(val);
+                    // Invalidate the provider to refresh UI
+                    ref.invalidate(notificationsEnabledProvider);
+                  },
+                ),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (err, _) => _buildToggleTile(
+                  icon: Icons.notifications_active,
+                  iconColor: Colors.amber,
+                  title: 'Daily Inspiration',
+                  value: false,
+                  onChanged: (val) {},
+                ),
+              ),
           const SizedBox(height: 12),
           _buildActionTile(
             icon: Icons.access_time_filled,
@@ -86,13 +104,25 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text(
-                '08:30 AM',
-                style: TextStyle(
-                  color: AppColors.accent,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: ref
+                  .watch(notificationSettingsViewModelProvider)
+                  .when(
+                    data: (time) => Text(
+                      time != null
+                          ? '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}'
+                          : '08:30',
+                      style: const TextStyle(
+                        color: AppColors.accent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    loading: () => const SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (_, __) => const Text('Error'),
+                  ),
             ),
             onTap: () {
               Navigator.push(
@@ -251,7 +281,7 @@ class _SettingsViewState extends ConsumerState<SettingsView> {
         trailing: Switch.adaptive(
           value: value,
           onChanged: onChanged,
-          activeColor: Colors.white,
+          activeThumbColor: Colors.white,
           activeTrackColor: Colors.green,
         ),
       ),

@@ -47,6 +47,25 @@ class QuoteCard extends ConsumerWidget {
             color: AppColors.accent.withOpacity(0.5),
           ),
           const SizedBox(height: 12),
+          if (quote.categories.contains('Community')) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.accent.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const Text(
+                'COMMUNITY',
+                style: TextStyle(
+                  color: AppColors.accent,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           Text(
             quote.text,
             style: TextStyle(

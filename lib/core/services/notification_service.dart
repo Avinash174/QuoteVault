@@ -106,7 +106,10 @@ class NotificationService {
       sound: true,
     );
 
-    print('User granted permission: ${settings.authorizationStatus}');
+    developer.log(
+      'User granted permission: ${settings.authorizationStatus}',
+      name: 'ThoughtVault.Notification',
+    );
   }
 
   void _showLocalNotification(RemoteMessage message) async {
@@ -154,7 +157,7 @@ class NotificationService {
       quote = null;
     }
 
-    const String title = 'Quote of the Day';
+    const String title = 'Daily Inspiration';
     final String body = quote != null
         ? '"${quote.text}" - ${quote.author}'
         : 'Time for your daily spark of inspiration!';

@@ -25,15 +25,19 @@ class TermsOfServiceView extends StatelessWidget {
             SizedBox(height: 24),
             Text(
               '1. Acceptance of Terms\n\n'
-              'By accessing and using ThoughtVault, you accept and agree to be bound by the terms and provision of this agreement.\n\n'
-              '2. Use License\n\n'
-              'Permission is granted to temporarily download one copy of the materials (information or software) on ThoughtVault for personal, non-commercial transitory viewing only.\n\n'
-              '3. Disclaimer\n\n'
-              'The materials on ThoughtVault are provided "as is". ThoughtVault makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties.\n\n'
-              '4. Limitations\n\n'
-              'In no event shall ThoughtVault be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on ThoughtVault.\n\n'
-              '5. Governing Law\n\n'
-              'Any claim relating to ThoughtVault shall be governed by the laws of the State of California without regard to its conflict of law provisions.',
+              'By downloading or using ThoughtVault, you agree to these Terms of Service. If you do not agree, please do not use the app.\n\n'
+              '2. Use of Service\n\n'
+              'ThoughtVault provides a platform for discovering, creating, and sharing quotes. You agree to use this service for lawful purposes only.\n\n'
+              '3. User Accounts\n\n'
+              'You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.\n\n'
+              '4. Intellectual Property\n\n'
+              'All content provided in ThoughtVault, including quotes fetched from APIs, is the property of their respective owners. User-created quotes remain the property of the creator, but by posting, you grant us a license to display them.\n\n'
+              '5. Disclaimer of Warranties\n\n'
+              'ThoughtVault is provided "as is" without any warranties, express or implied. We do not guarantee that the service will be uninterrupted or error-free.\n\n'
+              '6. Limitation of Liability\n\n'
+              'In no event shall ThoughtVault be liable for any damages arising out of the use or inability to use the service.\n\n'
+              '7. Changes to Terms\n\n'
+              'We reserve the right to modify these terms at any time. Your continued use of the app constitutes acceptance of the updated terms.',
               style: TextStyle(height: 1.5, fontSize: 16),
             ),
           ],

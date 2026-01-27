@@ -7,6 +7,7 @@ import '../providers/quote_viewmodel.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/banner_ad_widget.dart';
 import 'search_screen.dart';
+import '../../../notifications/presentation/providers/notification_settings_viewmodel.dart';
 import 'quote_detail_view.dart';
 
 class HomeView extends ConsumerWidget {
@@ -90,35 +91,57 @@ class HomeView extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'QUOTE OF THE DAY',
-                      style: TextStyle(
-                        color: AppColors.accent,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Consumer(
-                      builder: (context, ref, child) {
-                        final qodAsync = ref.watch(quoteOfTheDayProvider);
-                        return qodAsync.when(
-                          data: (quote) => QuoteCard(quote: quote),
+                    ref
+                        .watch(notificationsEnabledProvider)
+                        .when(
+                          data: (enabled) => enabled
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'DAILY INSPIRATION',
+                                      style: TextStyle(
+                                        color: AppColors.accent,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Consumer(
+                                      builder: (context, ref, child) {
+                                        final qodAsync = ref.watch(
+                                          quoteOfTheDayProvider,
+                                        );
+                                        return qodAsync.when(
+                                          data: (quote) =>
+                                              QuoteCard(quote: quote),
+                                          loading: () =>
+                                              const QuoteCardShimmer(),
+                                          error: (error, _) => Text(
+                                            'Unable to load Daily Inspiration',
+                                            style: TextStyle(
+                                              color: isDark
+                                                  ? Colors.white70
+                                                  : AppColors
+                                                        .textSecondaryLight,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Divider(
+                                      color: isDark
+                                          ? Colors.white12
+                                          : Colors.black12,
+                                    ),
+                                  ],
+                                )
+                              : const SizedBox.shrink(),
                           loading: () => const QuoteCardShimmer(),
-                          error: (error, _) => Text(
-                            'Unable to load Quote of the Day',
-                            style: TextStyle(
-                              color: isDark
-                                  ? Colors.white70
-                                  : AppColors.textSecondaryLight,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Divider(color: isDark ? Colors.white12 : Colors.black12),
+                          error: (_, __) => const SizedBox.shrink(),
+                        ),
                   ],
                 ),
               ),

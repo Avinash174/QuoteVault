@@ -16,7 +16,19 @@ class AdService {
         return 'ca-app-pub-3940256099942544/2934735716';
       }
     }
-    return 'ca-app-pub-2099964887845802/7897475075';
+
+    // PRODUCTION IDs - Replace these with your actual Ad Unit IDs from the AdMob console
+    if (Platform.isAndroid) {
+      // TODO: Paste your real Android Banner Ad Unit ID below
+      // return 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+      return 'ca-app-pub-2099964887845802/1795101155'; // Real Android Banner ID
+    } else if (Platform.isIOS) {
+      // TODO: Paste your real iOS Banner Ad Unit ID below
+      // return 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+      return 'ca-app-pub-3940256099942544/2934735716'; // CURRENTLY USING TEST ID - Replace this!
+    }
+
+    return '';
   }
 
   static String get rewardedAdUnitId {
@@ -27,8 +39,17 @@ class AdService {
         return 'ca-app-pub-3940256099942544/1712485313';
       }
     }
-    // TODO: Replace with real Rewarded Ad Unit ID for production
-    return 'ca-app-pub-3940256099942544/5224354917'; // Using test ID for now
+
+    // PRODUCTION IDs - Replace these with your actual Ad Unit IDs from the AdMob console
+    if (Platform.isAndroid) {
+      return 'ca-app-pub-2099964887845802/5411569078'; // Real Android Rewarded ID
+    } else if (Platform.isIOS) {
+      // TODO: Paste your real iOS Rewarded Ad Unit ID below
+      // return 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+      return 'ca-app-pub-3940256099942544/1712485313'; // CURRENTLY USING TEST ID - Replace this!
+    }
+
+    return '';
   }
 
   RewardedAd? _rewardedAd;

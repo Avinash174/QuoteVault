@@ -373,4 +373,29 @@ class FirestoreService {
       rethrow;
     }
   }
+
+  Future<List<Map<String, dynamic>>> getCommunityQuotes({
+    int limit = 20,
+  }) async {
+    try {
+      final snapshot = await _db
+          .collection('community_quotes')
+          .orderBy('createdAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+    } catch (e) {
+      developer.log(
+        'Error fetching community quotes',
+        name: 'ThoughtVault.Firestore',
+        error: e,
+      );
+      return [];
+    }
+  }
 }
