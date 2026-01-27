@@ -18,7 +18,10 @@ class ShareBottomSheet extends StatelessWidget {
         // Nothing special to do when dismissed without reward
       },
       onUserEarnedReward: () {
-        sp.Share.share('"${quote.text}" - ${quote.author}');
+        // ignore: deprecated_member_use
+        sp.Share.share(
+          '"${quote.text}" - ${quote.author}\n\nDownload ThoughtVault: https://play.google.com/store/apps/details?id=com.avinashmagar.thoughtvault',
+        );
       },
     );
     Navigator.pop(context);

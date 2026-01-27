@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/onboarding_provider.dart';
-import '../../../../core/theme/app_colors.dart';
 
 class IntroductionView extends ConsumerStatefulWidget {
   const IntroductionView({super.key});
@@ -19,34 +18,35 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
     const OnboardingSlide(
       title: "Discover Wisdom",
       description:
-          "Explore a curated collection of thoughts that inspire, challenge, and enlighten.",
+          "Dive into a vast ocean of curated thoughts. Find inspiration, challenge your perspective, and ignite your daily motivation.",
       imagePath: "assets/onboarding/discover.png",
-      color: AppColors.accent,
     ),
     const OnboardingSlide(
-      title: "Secure Your Vault",
+      title: "Your Personal Vault",
       description:
-          "Collect your favorite insights and keep them safe in your personal digital vault.",
+          "Save the quotes that resonate with your soul. Build a collection of timeless wisdom that stays with you, safe and sound.",
       imagePath: "assets/onboarding/vault.png",
-      color: AppColors.royalStart,
     ),
     const OnboardingSlide(
-      title: "Connect & Share",
+      title: "Share the Light",
       description:
-          "Spread the light of knowledge by sharing profound quotes with your community.",
+          "Inspire your community. Share profound insights seamlessly with friends and family, spreading the light of knowledge.",
       imagePath: "assets/onboarding/connect.png",
-      color: AppColors.fabGradientStart,
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
+          // Background Elements (Optional gradient or pattern could go here)
+
+          // Page View
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) => setState(() => _currentPage = index),
@@ -55,6 +55,7 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
               final slide = _slides[index];
               return Column(
                 children: [
+                  // Image Section
                   Expanded(
                     flex: 6,
                     child:
@@ -67,7 +68,7 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
                                 ),
                               ),
                             )
-                            .animate(key: ValueKey(index))
+                            .animate(key: ValueKey('img_$index')) // Unique Key
                             .fadeIn(duration: 800.ms)
                             .scale(
                               begin: const Offset(1.1, 1.1),
@@ -76,6 +77,8 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
                               curve: Curves.easeOut,
                             ),
                   ),
+
+                  // Text Section
                   Expanded(
                     flex: 4,
                     child: Padding(
@@ -89,27 +92,36 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
                                 style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
-                                  color: isDark
-                                      ? Colors.white
-                                      : AppColors.textPrimaryLight,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.titleLarge?.color,
+                                  letterSpacing: 0.5,
                                 ),
                               )
-                              .animate(key: ValueKey(index))
+                              .animate(
+                                key: ValueKey('title_$index'),
+                              ) // Unique Key
                               .fadeIn(delay: 200.ms)
                               .slideY(begin: 0.2, end: 0),
+
                           const SizedBox(height: 16),
+
                           Text(
                                 slide.description,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: isDark
-                                      ? Colors.white70
-                                      : AppColors.textSecondaryLight,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.color
+                                      ?.withValues(alpha: 0.8),
                                   height: 1.5,
                                 ),
                               )
-                              .animate(key: ValueKey(index))
+                              .animate(
+                                key: ValueKey('desc_$index'),
+                              ) // Unique Key
                               .fadeIn(delay: 400.ms)
                               .slideY(begin: 0.2, end: 0),
                         ],
@@ -120,6 +132,22 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
               );
             },
           ),
+
+          // Skip Button (Top Right)
+          if (_currentPage < _slides.length - 1)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 16,
+              right: 24,
+              child: TextButton(
+                onPressed: () {
+                  ref.read(onboardingProvider.notifier).completeOnboarding();
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: isDark ? Colors.white70 : Colors.black54,
+                ),
+                child: const Text("SKIP"),
+              ),
+            ),
 
           // Bottom Controls
           Positioned(
@@ -142,7 +170,7 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
                         width: _currentPage == index ? 24 : 8,
                         decoration: BoxDecoration(
                           color: _currentPage == index
-                              ? AppColors.accent
+                              ? primaryColor
                               : (isDark ? Colors.white24 : Colors.black12),
                           borderRadius: BorderRadius.circular(4),
                         ),
@@ -151,47 +179,72 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
                   ),
 
                   // Action Button
-                  ElevatedButton(
-                        onPressed: () {
-                          if (_currentPage < _slides.length - 1) {
-                            _pageController.nextPage(
-                              duration: 500.ms,
+                  GestureDetector(
+                    onTap: () {
+                      if (_currentPage < _slides.length - 1) {
+                        _pageController.nextPage(
+                          duration: 500.ms,
+                          curve: Curves.easeInOut,
+                        );
+                      } else {
+                        ref
+                            .read(onboardingProvider.notifier)
+                            .completeOnboarding();
+                      }
+                    },
+                    child:
+                        AnimatedContainer(
+                              duration: 300.ms,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: _currentPage == _slides.length - 1
+                                    ? 32
+                                    : 16,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: primaryColor,
+                                borderRadius: BorderRadius.circular(30),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: primaryColor.withValues(alpha: 0.4),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_currentPage == _slides.length - 1) ...[
+                                    const Text(
+                                      "GET STARTED",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ] else ...[
+                                    const Icon(
+                                      Icons.arrow_forward_rounded,
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            )
+                            .animate(
+                              target: _currentPage == _slides.length - 1
+                                  ? 1
+                                  : 0,
+                            )
+                            .shimmer(duration: 1500.ms)
+                            .scale(
+                              begin: const Offset(1, 1),
+                              end: const Offset(1.05, 1.05),
                               curve: Curves.easeInOut,
-                            );
-                          } else {
-                            ref
-                                .read(onboardingProvider.notifier)
-                                .completeOnboarding();
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          elevation: 8,
-                        ),
-                        child: Text(
-                          _currentPage == _slides.length - 1
-                              ? "GET STARTED"
-                              : "NEXT",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      )
-                      .animate(
-                        target: _currentPage == _slides.length - 1 ? 1 : 0,
-                      )
-                      .shimmer(duration: 1500.ms)
-                      .scale(
-                        begin: const Offset(1, 1),
-                        end: const Offset(1.05, 1.05),
-                        curve: Curves.easeInOut,
-                      ),
+                            ),
+                  ),
                 ],
               ),
             ),
@@ -206,12 +259,10 @@ class OnboardingSlide {
   final String title;
   final String description;
   final String imagePath;
-  final Color color;
 
   const OnboardingSlide({
     required this.title,
     required this.description,
     required this.imagePath,
-    required this.color,
   });
 }

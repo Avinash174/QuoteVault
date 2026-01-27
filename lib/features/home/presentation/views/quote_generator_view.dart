@@ -29,6 +29,11 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
     'Midnight': [AppColors.midnightStart, AppColors.midnightEnd],
     'Royal': [AppColors.royalStart, AppColors.royalEnd],
     'Sunset': [AppColors.sunsetStart, AppColors.sunsetEnd],
+    'Nebula': [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+    'Aurora': [Color(0xFF00c6ff), Color(0xFF0072ff)],
+    'Emerald': [Color(0xFF11998e), Color(0xFF38ef7d)],
+    'Blush': [Color(0xFFdd5e89), Color(0xFFf7bb97)],
+    'Clean': [Color(0xFF4B6CB7), Color(0xFF182848)],
     'Custom': [Colors.grey.shade800, Colors.black],
   };
 
@@ -62,9 +67,12 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
             await imagePath.writeAsBytes(image);
 
             // Share the file
-            await sp.Share.shareXFiles([
-              sp.XFile(imagePath.path),
-            ], text: 'Check out this quote from ThoughtVault!');
+            // ignore: deprecated_member_use
+            await sp.Share.shareXFiles(
+              [sp.XFile(imagePath.path)],
+              text:
+                  'Check out this quote I found on ThoughtVault!\n\n"${widget.quote.text}" - ${widget.quote.author}\n\nDownload ThoughtVault: https://play.google.com/store/apps/details?id=com.avinashmagar.thoughtvault',
+            );
           }
         } catch (e) {
           if (mounted) {
@@ -195,17 +203,21 @@ class _QuoteGeneratorViewState extends State<QuoteGeneratorView> {
                                     const SizedBox(height: 24),
                                     Row(
                                       children: [
-                                        Text(
-                                          "— ${widget.quote.author}",
-                                          style: TextStyle(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.7,
+                                        Expanded(
+                                          child: Text(
+                                            "— ${widget.quote.author}",
+                                            style: TextStyle(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.7,
+                                              ),
+                                              fontSize: 14,
+                                              fontStyle: FontStyle.italic,
                                             ),
-                                            fontSize: 14,
-                                            fontStyle: FontStyle.italic,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
                                           ),
                                         ),
-                                        const Spacer(),
+                                        const SizedBox(width: 8),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
                                             horizontal: 10,

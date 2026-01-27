@@ -1,89 +1,73 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'dart:io';
+
+enum UpdateStatus { latest, optionalUpdate, updateRequired }
 
 class ForceUpdateService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> checkForUpdate(BuildContext context) async {
+  // Singleton pattern
+  static final ForceUpdateService _instance = ForceUpdateService._internal();
+  factory ForceUpdateService() => _instance;
+  ForceUpdateService._internal();
+
+  Future<UpdateStatus> checkVersion() async {
     try {
-      // Fetch remote config (min_version) from Firestore
-      final doc = await _firestore
-          .collection('app_config')
-          .doc('version')
-          .get();
-      if (!doc.exists) return;
-
-      final data = doc.data();
-      if (data == null) return;
-
-      final String minVersion = data['min_version'] ?? '0.0.0';
-      final String storeUrl = Platform.isIOS
-          ? (data['app_store_url'] ?? '')
-          : (data['play_store_url'] ?? '');
-
-      // Get current app version
+      // 1. Get current app version
       final packageInfo = await PackageInfo.fromPlatform();
-      final currentVersion = packageInfo.version;
+      final currentVersionStr = packageInfo.version;
 
-      if (_isUpdateRequired(currentVersion, minVersion)) {
-        if (context.mounted) {
-          _showForceUpdateDialog(context, storeUrl);
-        }
+      // 2. Fetch version config from Firestore
+      final doc = await _firestore
+          .collection('version_control')
+          .doc('config')
+          .get();
+
+      if (!doc.exists) {
+        // If no config exists, assume we are safe
+        return UpdateStatus.latest;
       }
+
+      final data = doc.data()!;
+      final minVersionStr = data['min_required_version'] as String? ?? '0.0.0';
+      final latestVersionStr = data['latest_version'] as String? ?? '0.0.0';
+
+      // 3. Compare versions
+      final currentVersion = _parseVersion(currentVersionStr);
+      final minVersion = _parseVersion(minVersionStr);
+      final latestVersion = _parseVersion(latestVersionStr);
+
+      if (currentVersion < minVersion) {
+        return UpdateStatus.updateRequired;
+      }
+
+      if (currentVersion < latestVersion) {
+        return UpdateStatus.optionalUpdate;
+      }
+
+      return UpdateStatus.latest;
     } catch (e) {
-      debugPrint('Error checking for update: $e');
+      // If error (e.g. offline), default to allowing access
+      return UpdateStatus.latest;
     }
   }
 
-  bool _isUpdateRequired(String current, String min) {
-    List<int> c = current.split('.').map(int.parse).toList();
-    List<int> m = min.split('.').map(int.parse).toList();
+  // Helper to parse "1.0.0" into an integer like 10000 for comparison
+  int _parseVersion(String version) {
+    try {
+      // Remove any build numbers (e.g. "+37")
+      final cleanVersion = version.split('+').first;
+      final parts = cleanVersion.split('.').map((e) => int.parse(e)).toList();
 
-    // Normalize lengths (e.g., 1.0 vs 1.0.1)
-    while (c.length < 3) {
-      c.add(0);
-    }
-    while (m.length < 3) {
-      m.add(0);
-    }
+      // Pad with zeros if needed
+      while (parts.length < 3) {
+        parts.add(0);
+      }
 
-    for (int i = 0; i < 3; i++) {
-      if (c[i] < m[i]) return true;
-      if (c[i] > m[i]) return false;
+      // Formula: Major * 10000 + Minor * 100 + Patch
+      return parts[0] * 10000 + parts[1] * 100 + parts[2];
+    } catch (e) {
+      return 0;
     }
-    return false;
-  }
-
-  void _showForceUpdateDialog(BuildContext context, String url) {
-    showDialog(
-      context: context,
-      barrierDismissible: false, // Prevent closing by tapping outside
-      builder: (BuildContext context) {
-        // WillPopScope is deprecated, use PopScope
-        return PopScope(
-          canPop: false, // Prevent back button
-          child: AlertDialog(
-            title: const Text('Update Required'),
-            content: const Text(
-              'A new version of ThoughtVault is available. Please update the app to continue using it.',
-            ),
-            actions: [
-              TextButton(
-                child: const Text('Update Now'),
-                onPressed: () async {
-                  final uri = Uri.parse(url);
-                  if (await canLaunchUrl(uri)) {
-                    await launchUrl(uri, mode: LaunchMode.externalApplication);
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
   }
 }
