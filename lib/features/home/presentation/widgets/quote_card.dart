@@ -41,7 +41,7 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
             child: const Text(
               'MELT',
               style: TextStyle(
-                color: Colors.redAccent,
+                color: AppColors.error,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -157,7 +157,7 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
                                   ? Icons.favorite
                                   : Icons.favorite_border,
                               isDark: isDark,
-                              color: isFavorite ? Colors.redAccent : null,
+                              color: isFavorite ? AppColors.error : null,
                               onPressed: () {
                                 ref
                                     .read(libraryViewModelProvider.notifier)
@@ -215,7 +215,7 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
                 },
               ) // Deletion animation
               .shake(duration: 400.ms, hz: 10, curve: Curves.easeInOut)
-              .tint(color: Colors.redAccent, end: 0.6, duration: 400.ms)
+              .tint(color: AppColors.error, end: 0.6, duration: 400.ms)
               .blur(
                 end: const Offset(10, 10),
                 duration: 600.ms,
@@ -236,7 +236,7 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
         background: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.redAccent.withValues(alpha: 0.1),
+            color: AppColors.error.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           alignment: Alignment.centerRight,
@@ -244,7 +244,7 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
           child:
               const Icon(
                     Icons.delete_sweep_rounded,
-                    color: Colors.redAccent,
+                    color: AppColors.error,
                     size: 32,
                   )
                   .animate(onPlay: (controller) => controller.repeat())

@@ -81,50 +81,50 @@ class _IntroductionViewState extends ConsumerState<IntroductionView> {
                   // Text Section
                   Expanded(
                     flex: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                                slide.title,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(
-                                    context,
-                                  ).textTheme.titleLarge?.color,
-                                  letterSpacing: 0.5,
-                                ),
-                              )
-                              .animate(
-                                key: ValueKey('title_$index'),
-                              ) // Unique Key
-                              .fadeIn(delay: 200.ms)
-                              .slideY(begin: 0.2, end: 0),
-
-                          const SizedBox(height: 16),
-
-                          Text(
-                                slide.description,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.color
-                                      ?.withValues(alpha: 0.8),
-                                  height: 1.5,
-                                ),
-                              )
-                              .animate(
-                                key: ValueKey('desc_$index'),
-                              ) // Unique Key
-                              .fadeIn(delay: 400.ms)
-                              .slideY(begin: 0.2, end: 0),
-                        ],
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                                  slide.title,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize:
+                                        24, // Reduced slightly for better fit
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge?.color,
+                                    letterSpacing: 0.5,
+                                  ),
+                                )
+                                .animate(key: ValueKey('title_$index'))
+                                .fadeIn(delay: 200.ms)
+                                .slideY(begin: 0.2, end: 0),
+                            const SizedBox(height: 16),
+                            Text(
+                                  slide.description,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.color
+                                        ?.withValues(alpha: 0.8),
+                                    height: 1.5,
+                                  ),
+                                )
+                                .animate(key: ValueKey('desc_$index'))
+                                .fadeIn(delay: 400.ms)
+                                .slideY(begin: 0.2, end: 0),
+                            const SizedBox(
+                              height: 80,
+                            ), // Space for bottom controls
+                          ],
+                        ),
                       ),
                     ),
                   ),

@@ -39,4 +39,5 @@ class AppColors {
   static const Color cardLight = Colors.white;
   static const Color textPrimaryLight = Color(0xFF212529);
   static const Color textSecondaryLight = Color(0xFF6C757D);
+  static const Color liveIndicator = Color(0xFF00E676);
 }

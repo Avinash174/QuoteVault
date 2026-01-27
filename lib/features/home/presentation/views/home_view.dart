@@ -223,7 +223,7 @@ class HomeView extends ConsumerWidget {
                       width: 6,
                       height: 6,
                       decoration: const BoxDecoration(
-                        color: Color(0xFF00E676), // Green dot
+                        color: AppColors.liveIndicator, // Green dot
                         shape: BoxShape.circle,
                       ),
                     ),
