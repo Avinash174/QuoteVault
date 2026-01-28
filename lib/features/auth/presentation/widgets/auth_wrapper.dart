@@ -30,7 +30,7 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
   Future<void> _checkVersion() async {
     final results = await Future.wait([
       ForceUpdateService().checkVersion(),
-      Future.delayed(const Duration(seconds: 3)),
+      Future.delayed(const Duration(seconds: 5)),
     ]);
     final status = results.first as UpdateStatus;
 
@@ -51,6 +51,17 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
 
     if (_updateStatus == UpdateStatus.updateRequired) {
       return const ForceUpdateView();
+    }
+
+    if (_updateStatus == UpdateStatus.optionalUpdate) {
+      return ForceUpdateView(
+        allowSkip: true,
+        onSkip: () {
+          setState(() {
+            _updateStatus = UpdateStatus.latest;
+          });
+        },
+      );
     }
 
     final hasSeenOnboarding = ref.watch(onboardingProvider);

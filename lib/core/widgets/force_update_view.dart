@@ -4,7 +4,10 @@ import '../theme/app_colors.dart';
 import 'dart:io';
 
 class ForceUpdateView extends StatelessWidget {
-  const ForceUpdateView({super.key});
+  final bool allowSkip;
+  final VoidCallback? onSkip;
+
+  const ForceUpdateView({super.key, this.allowSkip = false, this.onSkip});
 
   // Play Store URL
   static const String _playStoreUrl =
@@ -22,7 +25,12 @@ class ForceUpdateView extends StatelessWidget {
     // Determine strict theme colors manually or via context
 
     return PopScope(
-      canPop: false, // Prevents back navigation
+      canPop: allowSkip, // Prevents back navigation unless allowed
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop && allowSkip) {
+          onSkip?.call();
+        }
+      },
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Center(
@@ -48,7 +56,7 @@ class ForceUpdateView extends StatelessWidget {
 
                 // Title
                 Text(
-                  "Time for an Upgrade!",
+                  allowSkip ? "New Update Available" : "Time for an Upgrade!",
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -58,7 +66,9 @@ class ForceUpdateView extends StatelessWidget {
 
                 // Description
                 Text(
-                  "We've made some significant changes to improve your experience. Please update the app to continue using ThoughtVault.",
+                  allowSkip
+                      ? "A new version of ThoughtVault is available. Update now to access the latest features and improvements."
+                      : "We've made some significant changes to improve your experience. Please update the app to continue using ThoughtVault.",
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Theme.of(
                       context,
@@ -93,7 +103,22 @@ class ForceUpdateView extends StatelessWidget {
                   ),
                 ),
 
-                if (Platform.isIOS) ...[
+                if (allowSkip) ...[
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: onSkip,
+                    child: Text(
+                      "Skip for now",
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                ],
+
+                if (Platform.isIOS && !allowSkip) ...[
                   const SizedBox(height: 16),
                   Text(
                     "Available on the App Store",
