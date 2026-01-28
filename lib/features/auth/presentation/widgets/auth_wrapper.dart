@@ -28,7 +28,12 @@ class _AuthWrapperState extends ConsumerState<AuthWrapper> {
   }
 
   Future<void> _checkVersion() async {
-    final status = await ForceUpdateService().checkVersion();
+    final results = await Future.wait([
+      ForceUpdateService().checkVersion(),
+      Future.delayed(const Duration(seconds: 3)),
+    ]);
+    final status = results.first as UpdateStatus;
+
     if (mounted) {
       setState(() {
         _updateStatus = status;
