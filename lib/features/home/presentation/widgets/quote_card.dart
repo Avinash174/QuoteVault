@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -208,9 +209,7 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
                 target: _isDeleting ? 1 : 0,
                 onComplete: (controller) {
                   if (_isDeleting) {
-                    ref
-                        .read(quoteViewModelProvider.notifier)
-                        .deleteQuote(quote);
+                    _performDelete(quote);
                   }
                 },
               ) // Deletion animation
@@ -264,6 +263,28 @@ class _QuoteCardState extends ConsumerState<QuoteCard> {
     }
 
     return cardContent;
+  }
+
+  Future<void> _performDelete(Quote quote) async {
+    try {
+      await ref.read(quoteViewModelProvider.notifier).deleteQuote(quote);
+      if (mounted) {
+        SnackbarUtils.showSuccess(
+          context,
+          'Quote Melted',
+          'It has returned to the ether.',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isDeleting = false); // Revert animation
+        SnackbarUtils.showError(
+          context,
+          'Melt Failed',
+          'Could not delete quote. Please try again.',
+        );
+      }
+    }
   }
 
   Widget _buildActionButton(
