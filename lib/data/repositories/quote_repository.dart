@@ -90,4 +90,22 @@ class QuoteRepository {
       throw Exception('Failed to delete quote: $e');
     }
   }
+
+  Future<void> deleteQuoteAndCleanup(String uid, Quote quote) async {
+    try {
+      // 1. Delete from community if it has an ID
+      if (quote.id != null) {
+        // We suppress error here because if it's already gone, we still want to remove from favorites
+        try {
+          await _firestoreService.deleteCommunityQuote(quote.id!);
+        } catch (_) {}
+      }
+
+      // 2. Remove from favorites
+      // This uses author+text as ID, so it works even if quote.id is different/null
+      await _firestoreService.removeFavorite(uid, quote);
+    } catch (e) {
+      throw Exception('Failed to delete quote and cleanup: $e');
+    }
+  }
 }

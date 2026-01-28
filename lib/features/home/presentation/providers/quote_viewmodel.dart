@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../data/models/quote_model.dart';
 import '../../../../data/repositories/quote_repository.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 part 'quote_viewmodel.g.dart';
 
@@ -71,19 +72,20 @@ class QuoteViewModel extends _$QuoteViewModel {
   }
 
   Future<void> deleteQuote(Quote quote) async {
-    if (quote.id == null) return;
-
     try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
       final repository = ref.read(quoteRepositoryProvider);
-      await repository.deleteQuote(quote.id!);
+
+      // Use the new cleanup method that handles both community and favorites
+      await repository.deleteQuoteAndCleanup(user.uid, quote);
 
       // Update state locally for instant feedback
       final currentQuotes = state.value;
       if (currentQuotes != null) {
         final updatedList = currentQuotes
-            .where(
-              (q) => q.id != quote.id,
-            ) // Reverted to original logic to maintain syntactic correctness
+            .where((q) => q.id != quote.id)
             .toList();
         state = AsyncData(updatedList);
       }
